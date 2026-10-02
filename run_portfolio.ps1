@@ -24,13 +24,17 @@ param(
     [switch]$Web,
 
     [Alias("l")]
-    [switch]$List
+    [switch]$List,
+
+    [switch]$Website
 )
 
 $argsList = @()
 
 if ($List) {
     $argsList += "--list"
+} elseif ($Website) {
+    $argsList += "--website"
 } elseif ($All) {
     $argsList += "--all"
 } elseif ($TestAll) {

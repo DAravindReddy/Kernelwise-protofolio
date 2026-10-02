@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kernelwise Labs — Embedded Systems, Linux Bring-Up & Edge AI Engineering</title>
+    <meta name="description" content="Kernelwise Labs delivers production-grade embedded systems, custom Linux board bring-up, microcontroller firmware CI/CD, and sub-second Edge AI & Voice workflows for hardware OEMs and smart fleets.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #060913;
+            --bg-secondary: #0c1222;
+            --bg-card: rgba(18, 26, 45, 0.7);
+            --bg-card-hover: rgba(26, 38, 66, 0.85);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(0, 229, 255, 0.25);
+            --accent-cyan: #00e5ff;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --glow: 0 0 25px rgba(0, 229, 255, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(0, 229, 255, 0.07) 0%, transparent 40%),
+                radial-gradient(circle at 85% 60%, rgba(139, 92, 246, 0.07) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(16px);
+            background: rgba(6, 9, 19, 0.85);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 76px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 800;
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-badge {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            font-weight: 700;
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: color 0.2s, text-shadow 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-cyan);
+            text-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), #00b4d8);
+            color: #030712;
+            box-shadow: 0 4px 20px rgba(0, 229, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 229, 255, 0.5);
+            background: linear-gradient(135deg, #33ebff, var(--accent-cyan));
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 100px 0 80px;
+            text-align: center;
+            position: relative;
+        }
+
+        .pill-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.25);
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            margin-bottom: 24px;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+            margin-bottom: 24px;
+            max-width: 960px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #ffffff 40%, var(--accent-cyan) 80%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 780px;
+            margin: 0 auto 40px;
+            font-weight: 400;
+            line-height: 1.7;
+        }
+
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+
+        /* Terminal Demo Window */
+        .terminal-preview {
+            max-width: 880px;
+            margin: 0 auto;
+            background: #030712;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 229, 255, 0.1);
+            text-align: left;
+            overflow: hidden;
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+        }
+
+        .terminal-header {
+            background: #0f172a;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #f59e0b; }
+        .dot-green { background: #10b981; }
+
+        .terminal-title {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .terminal-body {
+            padding: 24px;
+            color: #cbd5e1;
+            line-height: 1.65;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .term-prompt { color: var(--accent-cyan); font-weight: 700; }
+        .term-success { color: var(--accent-green); font-weight: 600; }
+        .term-warn { color: var(--accent-orange); }
+        .term-dim { color: var(--text-muted); }
+
+        /* Metric Bar */
+        .metrics-banner {
+            padding: 40px 0;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(12, 18, 34, 0.6);
+            margin: 60px 0;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 32px;
+            text-align: center;
+        }
+
+        .metric-item .val {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .metric-item .lbl {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Section Common */
+        .section-header {
+            text-align: center;
+            max-width: 720px;
+            margin: 0 auto 60px;
+        }
+
+        .section-tag {
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 2.4rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 16px;
+        }
+
+        .section-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Services Grid */
+        .services {
+            padding: 80px 0;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 28px;
+        }
+
+        .service-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-highlight);
+            background: var(--bg-card-hover);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), var(--glow);
+        }
+
+        .service-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(0, 229, 255, 0.1);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--accent-cyan);
+        }
+
+        .service-card h3 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .service-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .service-footer {
+            border-top: 1px solid var(--border-color);
+            padding-top: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.88rem;
+        }
+
+        .service-pricing {
+            font-weight: 700;
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+        }
+
+        .service-type {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        /* Showcase / Projects Section */
+        .showcase {
+            padding: 80px 0;
+            background: rgba(12, 18, 34, 0.4);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .filter-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 18px;
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--accent-cyan);
+            color: #000;
+            font-weight: 600;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 28px;
+        }
+
+        .project-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 28px;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .project-card:hover {
+            border-color: var(--border-highlight);
+            transform: translateY(-4px);
+        }
+
+        .project-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .proj-badge {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+        }
+
+        .proj-badge.live-web {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            font-weight: 600;
+        }
+
+        .project-card h4 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .project-card p {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .project-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .tag {
+            font-size: 0.78rem;
+            font-family: var(--font-mono);
+            color: var(--accent-cyan);
+            background: rgba(0, 229, 255, 0.08);
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 12px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+        }
+
+        .project-links a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .project-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* SDLC Framework */
+        .sdlc {
+            padding: 80px 0;
+        }
+
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 20px;
+            position: relative;
+        }
+
+        .timeline-step {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+        }
+
+        .step-number {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            margin-bottom: 8px;
+        }
+
+        .timeline-step h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .timeline-step p {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        /* Engagement Models / Pricing */
+        .pricing {
+            padding: 80px 0;
+            background: rgba(12, 18, 34, 0.4);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 28px;
+        }
+
+        .pricing-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 36px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .pricing-card.featured {
+            border-color: var(--accent-cyan);
+            background: rgba(20, 32, 58, 0.85);
+            box-shadow: 0 10px 40px rgba(0, 229, 255, 0.15);
+        }
+
+        .featured-tag {
+            position: absolute;
+            top: -12px;
+            right: 24px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: #000;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            letter-spacing: 0.05em;
+        }
+
+        .pricing-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+        }
+
+        .pricing-card .price {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            margin: 16px 0;
+        }
+
+        .pricing-card .price span {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .pricing-card ul {
+            list-style: none;
+            margin: 24px 0 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .pricing-card ul li {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pricing-card ul li::before {
+            content: "✓";
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        /* Interactive Scope Estimator */
+        .estimator {
+            padding: 80px 0;
+        }
+
+        .estimator-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 840px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: #fff;
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+        }
+
+        /* Footer */
+        footer {
+            background: #030611;
+            border-top: 1px solid var(--border-color);
+            padding: 60px 0 40px;
+            font-size: 0.92rem;
+            color: var(--text-muted);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 48px;
+            margin-bottom: 48px;
+        }
+
+        .footer-col h5 {
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .footer-col a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-col a:hover {
+            color: var(--accent-cyan);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.4rem; }
+            .nav-links { display: none; }
+            .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <div class="logo-badge">KW</div>
+                <span>Kernelwise Labs</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#services">Services</a></li>
+                <li><a href="#showcase">Engineering Showcases</a></li>
+                <li><a href="#sdlc">SDLC Lifecycle</a></li>
+                <li><a href="#pricing">Engagement Models</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div>
+                <a href="#contact" class="btn btn-primary">Book Technical Discovery</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="pill-badge">Silicon-to-Cloud & Edge AI Engineering</div>
+            <h1>High-Reliability Embedded Systems & <span class="gradient-text">Sub-Second AI Workflows</span></h1>
+            <p>
+                We partner with hardware startups and IoT OEMs to de-risk ARM64 Linux board bring-up, automate microcontroller firmware CI/CD pipelines, and deploy on-device Edge AI vision and sub-second voice agents.
+            </p>
+            <div class="hero-actions">
+                <a href="#contact" class="btn btn-primary">Request Fixed-Scope Proposal</a>
+                <a href="https://github.com/DAravindReddy/Kernelwise-protofolio" target="_blank" class="btn btn-secondary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    View Code on GitHub
+                </a>
+            </div>
+
+            <!-- Terminal Live Preview -->
+            <div class="terminal-preview">
+                <div class="terminal-header">
+                    <div class="terminal-dots">
+                        <span class="dot dot-red"></span>
+                        <span class="dot dot-yellow"></span>
+                        <span class="dot dot-green"></span>
+                    </div>
+                    <div class="terminal-title">kernelwise-runner — automated sequential verification</div>
+                    <div style="font-size:0.75rem; color:var(--accent-cyan)">Python 3.12 · ARM64</div>
+                </div>
+                <div class="terminal-body">
+                    <p><span class="term-prompt">$</span> python run_portfolio.py --all</p>
+                    <p class="term-dim">Starting sequential one-by-one execution of all 9 engineering subsystems...</p>
+                    <p><span class="term-success">[PASS]</span> 01-android-adb-telemetry       · Non-invasive thermal/CPU daemon (Target: sim-kiosk-arm64)</p>
+                    <p><span class="term-success">[PASS]</span> 02-embedded-linux-bringup        · BCM2711 DTS binding & I2C driver probe (/sys/class/hwmon0)</p>
+                    <p><span class="term-success">[PASS]</span> 03-embedded-firmware-cicd        · Unity C99 tests + 16KB ARM Cortex-M4 image + QEMU smoke</p>
+                    <p><span class="term-success">[PASS]</span> 04-ai-rootcause-agent            · RAG semantic vector diagnostic (I2C lockup isolated in 0.17ms)</p>
+                    <p><span class="term-success">[PASS]</span> 05-voice-agent-workflow          · P50 response latency: 423.6ms (Sub-500ms SLA verified)</p>
+                    <p><span class="term-success">[PASS]</span> 06-iot-sensor-to-cloud           · STM32 multi-node MQTT ingestion into AWS IoT Core</p>
+                    <p><span class="term-success">[PASS]</span> 07-developer-automation-toolkit  · kw-tools environment audit & automated crash log scanner</p>
+                    <p><span class="term-success">[PASS]</span> 08-smart-device-matter-gateway   · CSA Matter 1.2 clusters (OnOff, LevelControl, DoorLock)</p>
+                    <p><span class="term-success">[PASS]</span> 09-smart-edge-ai-camera          · On-device INT8 inference @ 36.4 FPS + 74.9°C Hotspot Alert</p>
+                    <p class="term-success" style="margin-top: 8px;">[ALL PASSED] 100% of hardware and AI contracts nominal.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Metrics Bar -->
+    <section class="metrics-banner">
+        <div class="container">
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="val">93%</div>
+                    <div class="lbl">CI/CD Build Acceleration</div>
+                </div>
+                <div class="metric-item">
+                    <div class="val">&lt;500ms</div>
+                    <div class="lbl">Voice AI Round-Trip Latency</div>
+                </div>
+                <div class="metric-item">
+                    <div class="val">95%+</div>
+                    <div class="lbl">RAG Root-Cause Accuracy</div>
+                </div>
+                <div class="metric-item">
+                    <div class="val">99.4%</div>
+                    <div class="lbl">Edge Video Bandwidth Reduction</div>
+                </div>
+                <div class="metric-item">
+                    <div class="val">0-Root</div>
+                    <div class="lbl">Non-Invasive Device Telemetry</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">// Core Client Offerings</div>
+                <h2 class="section-title">Specialized Engineering Services</h2>
+                <p class="section-subtitle">Turnkey hardware bring-up, automation pipelines, and modern AI deployments designed for strict hardware constraints.</p>
+            </div>
+
+            <div class="services-grid">
+                <!-- 1 -->
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon">📱</div>
+                        <h3>Android Fleet Telemetry & Health Monitoring</h3>
+                        <p>Non-invasive ADB daemons monitoring CPU saturation, thermal throttling (>48°C), and Low Memory Killer risks for kiosks, POS devices, and smart displays without requiring root access.</p>
+                    </div>
+                    <div class="service-footer">
+                        <span class="service-pricing">$1,500 – $4,000 / mo</span>
+                        <span class="service-type">Monthly Retainer</span>
+                    </div>
+                </div>
+
+                <!-- 2 -->
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon">🐧</div>
+                        <h3>Embedded Linux Board Bring-Up & BSP</h3>
+                        <p>Device Tree Source (`.dts`) peripheral mapping, custom C Linux kernel drivers (`i2c_driver`, `spi_driver`), threaded IRQs, sysfs contracts, and custom Yocto BitBake meta-layers.</p>
+                    </div>
+                    <div class="service-footer">
+                        <span class="service-pricing">$5,000 – $15,000</span>
+                        <span class="service-type">Fixed-Price Milestone</span>
+                    </div>
+                </div>
+
+                <!-- 3 -->
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon">⚙️</div>
+                        <h3>Microcontroller Firmware CI/CD & QEMU</h3>
+                        <p>Dockerized immutable toolchains with CMake, Ninja, MISRA-C static checking, Unity C99 unit tests, and virtualized QEMU ARM Cortex-M smoke tests before hardware flashing.</p>
+                    </div>
+                    <div class="service-footer">
+                        <span class="service-pricing">$3,500 – $8,000</span>
+                        <span class="service-type">Project Delivery</span>
+                    </div>
+                </div>
+
+                <!-- 4 -->
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon">🧠</div>
+                        <h3>AI Root-Cause Diagnostic Agents</h3>
+                        <p>Semantic RAG engines matching cryptic kernel panics, Android ANR traces, and bus lockups against curated failure post-mortems in &lt;50ms with step-by-step remediation runbooks.</p>
+                    </div>
+                    <div class="service-footer">
+                        <span class="service-pricing">Custom Deployment</span>
+                        <span class="service-type">Turnkey + SLA</span>
+                    </div>
+                </div>
+
+                <!-- 5 -->
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon">🎙️</div>
+                        <h3>Sub-Second Voice AI Support Agents</h3>
+                        <p>Ultra-responsive streaming voice assistants (STT ➔ LLM ➔ TTS &lt; 500ms) equipped with hardware diagnostics, warranty validation, and automated RMA repair booking tools.</p>
+                    </div>
+                    <div class="service-footer">
+                        <span class="service-pricing">Implementation + Tier</span>
+                        <span class="service-type">Turnkey Solution</span>
+                    </div>
+                </div>
+
+                <!-- 6 -->
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon">☁️</div>
+                        <h3>IoT Sensor-to-Cloud (STM32/ESP32 to AWS)</h3>
+                        <p>Microcontroller sensor firmware, mTLS X.509 device certificates, AWS IoT Core routing rules, DynamoDB time-series ingestion, Terraform IaC, and live multi-node dashboards.</p>
+                    </div>
+                    <div class="service-footer">
+                        <span class="service-pricing">$6,000 – $18,000</span>
+                        <span class="service-type">End-to-End Delivery</span>
+                    </div>
+                </div>
+
+                <!-- 7 -->
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon">🏠</div>
+                        <h3>Matter 1.2 Smart Home Edge Gateways</h3>
+                        <p>Edge daemons bridging proprietary BLE, Thread, and Zigbee appliances into the standard Matter data model (OnOff, LevelControl, DoorLock) for Apple Home and Home Assistant.</p>
+                    </div>
+                    <div class="service-footer">
+                        <span class="service-pricing">$8,000 – $25,000</span>
+                        <span class="service-type">Custom OEM Project</span>
+                    </div>
+                </div>
+
+                <!-- 8 -->
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon">📷</div>
+                        <h3>On-Device Edge AI Vision & Thermal Appliances</h3>
+                        <p>Optimized INT8 computer vision and AMG8833 thermal infrared anomaly detection running at 35+ FPS on ARM64 Cortex-A53 silicon with GDPR-compliant zero-video metadata streaming.</p>
+                    </div>
+                    <div class="service-footer">
+                        <span class="service-pricing">$7,500 – $20,000</span>
+                        <span class="service-type">Model + Edge Firmware</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Engineering Showcase Section -->
+    <section class="showcase" id="showcase">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">// Tested Subsystems</div>
+                <h2 class="section-title">Verified Engineering Showcases</h2>
+                <p class="section-subtitle">Every project in our portfolio is fully implemented with unit test suites, execution scripts, and interactive browser consoles.</p>
+            </div>
+
+            <div class="projects-grid">
+                <!-- 01 -->
+                <div class="project-card">
+                    <div class="project-meta">
+                        <span class="proj-badge">Project 01</span>
+                        <span class="proj-badge live-web">Live Web UI (8080)</span>
+                    </div>
+                    <h4>Android Device Fleet Telemetry Daemon</h4>
+                    <p>Non-invasive ADB telemetry collection for Android POS & kiosk fleets. Monitors SoC thermal throttling, RAM leaks, and top PIDs with automated alert dispatch.</p>
+                    <div class="project-tags">
+                        <span class="tag">Android ADB</span>
+                        <span class="tag">Python 3.12</span>
+                        <span class="tag">Live Web UI</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/01-android-adb-telemetry" target="_blank">View Code ↗</a>
+                    </div>
+                </div>
+
+                <!-- 02 -->
+                <div class="project-card">
+                    <div class="project-meta">
+                        <span class="proj-badge">Project 02</span>
+                        <span class="proj-badge">Kernel & DTS</span>
+                    </div>
+                    <h4>ARM64 Linux Board Bring-Up & I2C Driver</h4>
+                    <p>Complete BCM2711 device tree overlay, production C kernel driver with threaded interrupts, Yocto Kirkstone meta-layer, and real-world hardware triage case study.</p>
+                    <div class="project-tags">
+                        <span class="tag">Linux 6.6 LTS</span>
+                        <span class="tag">C99 Driver</span>
+                        <span class="tag">Yocto BitBake</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/02-embedded-linux-bringup" target="_blank">View Code ↗</a>
+                    </div>
+                </div>
+
+                <!-- 03 -->
+                <div class="project-card">
+                    <div class="project-meta">
+                        <span class="proj-badge">Project 03</span>
+                        <span class="proj-badge">DevOps CI/CD</span>
+                    </div>
+                    <h4>Firmware CI/CD & QEMU Smoke Automation</h4>
+                    <p>Dockerized toolchain cross-compiling ARM Cortex-M4 C99 firmware, running Unity unit tests, booting virtualized QEMU smoke tests, and generating SHA256 manifests.</p>
+                    <div class="project-tags">
+                        <span class="tag">Docker</span>
+                        <span class="tag">QEMU ARM</span>
+                        <span class="tag">Unity C</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/03-embedded-firmware-cicd" target="_blank">View Code ↗</a>
+                    </div>
+                </div>
+
+                <!-- 04 -->
+                <div class="project-card">
+                    <div class="project-meta">
+                        <span class="proj-badge">Project 04</span>
+                        <span class="proj-badge">AI Diagnostic</span>
+                    </div>
+                    <h4>AI Root-Cause Diagnostic Agent</h4>
+                    <p>Semantic vector RAG engine isolating kernel panics, I2C lockups, and Android ANRs in &lt;50ms with 100% top-1 diagnostic accuracy across 12 canonical failure benchmarks.</p>
+                    <div class="project-tags">
+                        <span class="tag">RAG Vector Engine</span>
+                        <span class="tag">TF-IDF</span>
+                        <span class="tag">Sub-Millisecond</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/04-ai-rootcause-agent" target="_blank">View Code ↗</a>
+                    </div>
+                </div>
+
+                <!-- 05 -->
+                <div class="project-card">
+                    <div class="project-meta">
+                        <span class="proj-badge">Project 05</span>
+                        <span class="proj-badge">Voice AI Engine</span>
+                    </div>
+                    <h4>Sub-500ms Voice Agent Workflow Engine</h4>
+                    <p>Sub-second voice support assistant with real-time hardware telemetry queries, enterprise warranty verification, and calendar RMA repair booking.</p>
+                    <div class="project-tags">
+                        <span class="tag">Streaming Voice</span>
+                        <span class="tag">P50 423ms</span>
+                        <span class="tag">Hardware Tools</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/05-voice-agent-workflow" target="_blank">View Code ↗</a>
+                    </div>
+                </div>
+
+                <!-- 06 -->
+                <div class="project-card">
+                    <div class="project-meta">
+                        <span class="proj-badge">Project 06</span>
+                        <span class="proj-badge live-web">Live Web UI (8082)</span>
+                    </div>
+                    <h4>IoT Sensor-to-Cloud (STM32 to AWS)</h4>
+                    <p>Multi-node environmental and vibration telemetry pipeline with mTLS encryption, Terraform AWS IoT Core architecture, and real-time browser dashboard.</p>
+                    <div class="project-tags">
+                        <span class="tag">AWS IoT Core</span>
+                        <span class="tag">Terraform</span>
+                        <span class="tag">STM32 / ESP32</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/06-iot-sensor-to-cloud" target="_blank">View Code ↗</a>
+                    </div>
+                </div>
+
+                <!-- 08 -->
+                <div class="project-card">
+                    <div class="project-meta">
+                        <span class="proj-badge">Project 08</span>
+                        <span class="proj-badge live-web">Live Web UI (8084)</span>
+                    </div>
+                    <h4>Matter 1.2 Smart Device Edge Gateway</h4>
+                    <p>Local edge bridge mapping proprietary smart devices into CSA Matter clusters with dynamic endpoint commissioning and interactive web control console.</p>
+                    <div class="project-tags">
+                        <span class="tag">Matter 1.2</span>
+                        <span class="tag">Sub-10ms LAN</span>
+                        <span class="tag">Smart Devices</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/08-smart-device-matter-gateway" target="_blank">View Code ↗</a>
+                    </div>
+                </div>
+
+                <!-- 09 -->
+                <div class="project-card">
+                    <div class="project-meta">
+                        <span class="proj-badge">Project 09</span>
+                        <span class="proj-badge live-web">Live Web UI (8086)</span>
+                    </div>
+                    <h4>Smart Edge AI Vision & Thermal Appliance</h4>
+                    <p>35+ FPS on-device INT8 computer vision and AMG8833 thermal infrared hotspot detection. Emits zero raw video to ensure strict GDPR compliance.</p>
+                    <div class="project-tags">
+                        <span class="tag">INT8 NPU</span>
+                        <span class="tag">Thermal Grid</span>
+                        <span class="tag">GDPR Compliant</span>
+                    </div>
+                    <div class="project-links">
+                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/09-smart-edge-ai-camera" target="_blank">View Code ↗</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SDLC Framework -->
+    <section class="sdlc" id="sdlc">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">// Engineering Discipline</div>
+                <h2 class="section-title">The 5-Stage SDLC Delivery Framework</h2>
+                <p class="section-subtitle">How we take your hardware from unboxing to automated production verification in 2 to 4 weeks.</p>
+            </div>
+
+            <div class="timeline-grid">
+                <div class="timeline-step">
+                    <div class="step-number">01</div>
+                    <h4>Architecture & HW Audit</h4>
+                    <p>Pin multiplexing review, power sequencing analysis, and peripheral bus mapping before code execution.</p>
+                </div>
+                <div class="timeline-step">
+                    <div class="step-number">02</div>
+                    <h4>Virtual Bring-Up</h4>
+                    <p>DTS validation, synthetic sensor emulation, and kernel symbol verification to catch driver flaws early.</p>
+                </div>
+                <div class="timeline-step">
+                    <div class="step-number">03</div>
+                    <h4>Physical Bench Test</h4>
+                    <p>Digital oscilloscope probe of I2C/SPI lines, interrupt latency verification, and thermal throttling audits.</p>
+                </div>
+                <div class="timeline-step">
+                    <div class="step-number">04</div>
+                    <h4>CI/CD & QEMU Gating</h4>
+                    <p>Automated pipeline containerization preventing regressions from ever reaching physical dev boards.</p>
+                </div>
+                <div class="timeline-step">
+                    <div class="step-number">05</div>
+                    <h4>Handoff & Artifacts</h4>
+                    <p>Cryptographic build manifests, clean documentation, and full IP transfer to your engineering team.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing / Engagement Models -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">// Transparent Pricing</div>
+                <h2 class="section-title">Client Engagement Models</h2>
+                <p class="section-subtitle">Choose the structure that matches your hardware timeline and engineering capacity.</p>
+            </div>
+
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>2-Week Fast-Track Sprint</h3>
+                    <p style="color:var(--text-secondary); font-size:0.9rem;">Ideal for rapid prototype bring-up or de-risking a critical peripheral driver.</p>
+                    <div class="price">$2,500 – $5,000 <span>/ sprint</span></div>
+                    <ul>
+                        <li>Single SoC / Target Board focus</li>
+                        <li>DTS mapping & custom C driver</li>
+                        <li>Hardware bench stress testing</li>
+                        <li>Daily async Slack/video standups</li>
+                        <li>Deliverable within 10 business days</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-secondary">Select 2-Week Sprint</a>
+                </div>
+
+                <div class="pricing-card featured">
+                    <div class="featured-tag">Most Popular</div>
+                    <h3>Turnkey System Delivery</h3>
+                    <p style="color:var(--text-secondary); font-size:0.9rem;">Complete silicon-to-cloud or on-device AI system implementation.</p>
+                    <div class="price">$6,000 – $18,000 <span>/ project</span></div>
+                    <ul>
+                        <li>End-to-end firmware + Cloud/Edge stack</li>
+                        <li>Dockerized CI/CD & QEMU test automation</li>
+                        <li>Live web dashboard & REST API integration</li>
+                        <li>Full Yocto / FreeRTOS rootfs delivery</li>
+                        <li>30-day post-launch warranty support</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-primary">Select Turnkey Project</a>
+                </div>
+
+                <div class="pricing-card">
+                    <h3>Dedicated Fleet SLA Retainer</h3>
+                    <p style="color:var(--text-secondary); font-size:0.9rem;">Continuous firmware maintenance and automated device fleet diagnostics.</p>
+                    <div class="price">$1,500 – $4,000 <span>/ month</span></div>
+                    <ul>
+                        <li>24/7 crash log triage & automated AI diagnosis</li>
+                        <li>Monthly security kernel patches</li>
+                        <li>Thermal and memory leak profiling</li>
+                        <li>Guaranteed 4-hour SLA response</li>
+                        <li>Cancel or pause anytime</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-secondary">Select Fleet Retainer</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Scope Inquiry / Contact Section -->
+    <section class="estimator" id="contact">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">// Get In Touch</div>
+                <h2 class="section-title">Schedule a Technical Discovery Call</h2>
+                <p class="section-subtitle">Tell us about your hardware target and timeline. We respond with a tailored technical scope within 24 hours.</p>
+            </div>
+
+            <div class="estimator-box">
+                <form id="contactForm" onsubmit="handleFormSubmit(event)">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label for="clientName">Your Name</label>
+                            <input type="text" id="clientName" class="form-control" placeholder="Aravind Reddy" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientEmail">Work Email</label>
+                            <input type="email" id="clientEmail" class="form-control" placeholder="aravind@company.com" required>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label for="serviceType">Target Engineering Domain</label>
+                            <select id="serviceType" class="form-control">
+                                <option value="Embedded Linux Bring-Up">Embedded Linux Board Bring-Up (ARM/Yocto)</option>
+                                <option value="Firmware CI/CD & QEMU">Firmware CI/CD & QEMU Test Automation</option>
+                                <option value="Android Fleet Telemetry">Android POS/Kiosk Fleet Health Telemetry</option>
+                                <option value="Edge AI Computer Vision">On-Device Edge AI Vision & Thermal</option>
+                                <option value="Low-Latency Voice AI">Low-Latency Streaming Voice Assistant</option>
+                                <option value="IoT Sensor-to-Cloud">IoT Sensor-to-Cloud (STM32 to AWS)</option>
+                                <option value="Matter Smart Gateway">Matter 1.2 Smart Home Gateway</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="timeline">Target Timeline</label>
+                            <select id="timeline" class="form-control">
+                                <option value="Immediate (Within 2 Weeks)">Immediate (2-Week Fast-Track Sprint)</option>
+                                <option value="Next Month (Turnkey)">Next Month (Turnkey Delivery)</option>
+                                <option value="Ongoing Fleet Retainer">Ongoing Fleet Support Retainer</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectDetails">Project Details & Target Silicon</label>
+                        <textarea id="projectDetails" class="form-control" rows="4" placeholder="Mention your target microcontroller or SoC (e.g. STM32, NXP i.MX8, BCM2711), sensors (I2C/SPI), and key deliverables..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1rem;">
+                        Submit Project Inquiry ➔
+                    </button>
+                </form>
+                <div id="formSuccess" style="display: none; margin-top: 20px; padding: 16px; border-radius: 8px; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-green); color: #6ee7b7; text-align: center;">
+                    Thank you! Your project inquiry has been prepared. Opening your mail client to dispatch to <strong>engineering@kernelwiselabs.com</strong>...
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="logo" style="margin-bottom: 16px;">
+                        <div class="logo-badge">KW</div>
+                        <span>Kernelwise Labs</span>
+                    </div>
+                    <p style="line-height: 1.7; margin-bottom: 20px;">
+                        Specialized embedded engineering, board bring-up, and Edge AI agency delivering production-grade systems for hardware startups and OEMs worldwide.
+                    </p>
+                    <p style="font-size: 0.85rem; color: var(--accent-cyan);">
+                        Principal Engineer: <strong>Aravind Reddy</strong>
+                    </p>
+                </div>
+                <div class="footer-col">
+                    <h5>Official Repositories</h5>
+                    <ul>
+                        <li><a href="https://github.com/DAravindReddy/Kernelwise-protofolio" target="_blank">Monorepo Portfolio</a></li>
+                        <li><a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/01-android-adb-telemetry" target="_blank">Android ADB Telemetry</a></li>
+                        <li><a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/02-embedded-linux-bringup" target="_blank">Embedded Linux Bring-Up</a></li>
+                        <li><a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/03-embedded-firmware-cicd" target="_blank">Firmware CI/CD Pipeline</a></li>
+                        <li><a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/09-smart-edge-ai-camera" target="_blank">Edge AI Vision & Thermal</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h5>Contact & Inquiries</h5>
+                    <ul>
+                        <li><a href="mailto:engineering@kernelwiselabs.com">engineering@kernelwiselabs.com</a></li>
+                        <li><a href="mailto:hello@kernelwiselabs.com">hello@kernelwiselabs.com</a></li>
+                        <li><a href="https://github.com/DAravindReddy" target="_blank">github.com/DAravindReddy</a></li>
+                        <li style="margin-top: 8px; color: var(--text-muted);">Bengaluru, India · Global Remote</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div>© 2026 Kernelwise Labs. All rights reserved.</div>
+                <div>Engineered for extreme reliability and hardware precision.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('clientName').value;
+            const email = document.getElementById('clientEmail').value;
+            const domain = document.getElementById('serviceType').value;
+            const timeline = document.getElementById('timeline').value;
+            const details = document.getElementById('projectDetails').value;
+
+            const subject = encodeURIComponent(`[Client Inquiry] ${domain} - ${name}`);
+            const body = encodeURIComponent(
+                `Hello Kernelwise Labs Team,\n\n` +
+                `Name: ${name}\n` +
+                `Work Email: ${email}\n` +
+                `Domain: ${domain}\n` +
+                `Timeline: ${timeline}\n\n` +
+                `Project Scope & Details:\n${details}\n\n` +
+                `Looking forward to scheduling a technical discovery call.`
+            );
+
+            document.getElementById('formSuccess').style.display = 'block';
+            setTimeout(() => {
+                window.location.href = `mailto:engineering@kernelwiselabs.com?subject=${subject}&body=${body}`;
+            }, 800);
+        }
+    </script>
+</body>
+</html>

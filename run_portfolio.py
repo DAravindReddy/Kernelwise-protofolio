@@ -172,6 +172,22 @@ def run_all_sequentially(mode: str = "run"):
     print("=" * 70 + "\n")
 
 
+def launch_website(port: int = 3000):
+    import http.server
+    import socketserver
+    socketserver.TCPServer.allow_reuse_address = True
+    print("\n" + "=" * 70)
+    print("   KERNELWISE LABS // CLIENT-FACING ORGANIZATION WEBSITE")
+    print("=" * 70)
+    print(f" [WEBSITE] Live at: http://localhost:{port}")
+    print(" [WEBSITE] Press Ctrl+C in this terminal when finished to return.\n")
+    try:
+        with socketserver.TCPServer(("", port), http.server.SimpleHTTPRequestHandler) as httpd:
+            httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\n[INFO] Website server stopped.")
+
+
 def interactive_menu():
     while True:
         print_banner()
@@ -180,17 +196,21 @@ def interactive_menu():
             web_tag = " (+Web UI)" if p.get("web_command") else ""
             print(f"  {p['id']}) {p['title']}{web_tag}")
         print("  -------------------------------------------------------------")
+        print("  W) Launch Client Organization Website (http://localhost:3000)")
         print("  A) Run ALL projects one by one (Sequential Run)")
         print("  T) Run ALL project unit test suites")
         print("  L) List project details")
         print("  Q) Quit")
         print("=" * 70)
 
-        choice = input("Enter your choice (1-9, A, T, L, Q): ").strip().upper()
+        choice = input("Enter your choice (1-9, W, A, T, L, Q): ").strip().upper()
 
         if choice == "Q":
             print("\nExiting. Happy engineering!")
             break
+        elif choice == "W":
+            launch_website()
+            input("\nPress Enter to return to menu...")
         elif choice == "A":
             run_all_sequentially(mode="run")
             input("\nPress Enter to return to menu...")
@@ -229,8 +249,13 @@ def main():
     parser.add_argument("--all", "-a", action="store_true", help="Execute all 9 projects sequentially one by one")
     parser.add_argument("--test-all", "-t", action="store_true", help="Run test suites for all 9 projects")
     parser.add_argument("--web", "-w", action="store_true", help="Launch web dashboard for the specified project")
+    parser.add_argument("--website", action="store_true", help="Launch the client-facing organization website on port 3000")
     parser.add_argument("--list", "-l", action="store_true", help="List all portfolio projects")
     args = parser.parse_args()
+
+    if args.website:
+        launch_website()
+        return
 
     if args.list:
         list_projects()
