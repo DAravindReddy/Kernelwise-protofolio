@@ -1,0 +1,20 @@
+{
+  "sql": "SELECT *, topic(3) as device_id, timestamp() as ingestion_time FROM 'kernelwise/devices/+/telemetry'",
+  "ruleDisabled": false,
+  "awsIotSqlVersion": "2016-03-23",
+  "actions": [
+    {
+      "dynamoDBv2": {
+        "roleArn": "arn:aws:iam::123456789012:role/KernelwiseIoTDynamoDBRole",
+        "putItem": {
+          "tableName": "kernelwise_device_telemetry"
+        }
+      }
+    },
+    {
+      "lambda": {
+        "functionArn": "arn:aws:lambda:us-east-1:123456789012:function:kernelwise_telemetry_dispatcher"
+      }
+    }
+  ]
+}

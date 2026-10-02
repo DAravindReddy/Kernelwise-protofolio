@@ -1,0 +1,10 @@
+build*/
+dist/
+release/
+*.o
+*.a
+*.bin
+*.elf
+*.hex
+*.exe
+__pycache__/

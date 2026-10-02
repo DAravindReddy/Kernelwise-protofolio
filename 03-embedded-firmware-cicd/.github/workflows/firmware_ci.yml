@@ -1,0 +1,59 @@
+name: Embedded Firmware CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Lint, Test, Cross-Compile and Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Embedded Toolchains & Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi cmake ninja-build cppcheck qemu-system-arm python3
+
+      - name: Stage 1 - Static Analysis (Cppcheck)
+        run: |
+          echo "Running Cppcheck static code analysis..."
+          cppcheck --enable=all --error-exitcode=1 --inline-suppr --suppress=missingIncludeSystem src/
+
+      - name: Stage 2 - Native Unit Tests (Unity)
+        run: |
+          echo "Compiling and running native unit tests..."
+          mkdir -p build-native && cd build-native
+          cmake -DBUILD_TESTS=ON ..
+          cmake --build .
+          ctest --output-on-failure
+
+      - name: Stage 3 - Cross-Compile ARM Cortex-M4 Firmware
+        run: |
+          echo "Cross-compiling firmware binary for ARM Cortex-M4..."
+          mkdir -p build-arm && cd build-arm
+          cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/arm-gcc-toolchain.cmake ..
+          cmake --build .
+
+      - name: Stage 4 - Virtualized Smoke Test in QEMU
+        run: |
+          echo "Running smoke test inside QEMU ARM Cortex-M emulator..."
+          python3 scripts/run_pipeline_local.py --stage qemu
+
+      - name: Stage 5 - Package Release Artifacts & Checksums
+        run: |
+          mkdir -p dist
+          cp build-arm/firmware.* dist/ 2>/dev/null || cp build-native/firmware_runner dist/
+          sha256sum dist/* > dist/checksums.sha256
+          echo "Artifacts generated successfully."
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-release-artifacts
+          path: dist/

@@ -1,0 +1,9 @@
+[user]
+    name = Kernelwise Labs Engineering
+    email = engineering@kernelwiselabs.com
+
+[init]
+    defaultBranch = main
+
+[core]
+    sshCommand = ssh -i ~/.ssh/id_ed25519_kernelwise -F ~/.ssh/config

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "KB-KER-001",
+    "subsystem": "Linux Kernel Core",
+    "failure_type": "NULL_POINTER_DEREFERENCE",
+    "keywords": ["Unable to handle kernel NULL pointer dereference", "epc", "ra", "Call Trace", "kernel paging request"],
+    "root_cause": "Driver dereferenced an uninitialized device pointer or client struct in interrupt/probe context.",
+    "remediation": [
+      "Add NULL pointer check before accessing struct member",
+      "Verify devm_kzalloc allocation return code in driver probe function",
+      "Enable CONFIG_DEBUG_RODATA and CONFIG_KASAN in kernel defconfig to catch uninitialized reads"
+    ]
+  },
+  {
+    "id": "KB-I2C-002",
+    "subsystem": "I2C Bus Controller",
+    "failure_type": "I2C_TRANSFER_TIMEOUT",
+    "keywords": ["transfer timed out", "i2c-bcm2835", "probe failed with error -110", "i2c_transfer failed", "arbitration lost"],
+    "root_cause": "I2C slave peripheral held SDA line LOW or clock stretching exceeded hardware controller timeout.",
+    "remediation": [
+      "Implement I2C GPIO recovery sequence pulsing SCL 9 times",
+      "Verify 4.7k ohm pull-up resistors on SDA and SCL lines with digital oscilloscope",
+      "Check peripheral device power rail sequencing to prevent warm-reset lockups"
+    ]
+  },
+  {
+    "id": "KB-AND-003",
+    "subsystem": "Android Runtime / Memory",
+    "failure_type": "LOW_MEMORY_KILLER",
+    "keywords": ["lowmemorykiller", "Killing", "to free", "Process has died", "Out of memory", "oom-killer"],
+    "root_cause": "System-wide RAM exhaustion triggered Android Low Memory Killer (LMK) to terminate foreground app.",
+    "remediation": [
+      "Profile heap allocations using 'dumpsys meminfo <package> -d'",
+      "Inspect native memory bitmap allocations and ensure recycle() is invoked",
+      "Enable zRAM swap compression or increase minfree thresholds in sysfs"
+    ]
+  },
+  {
+    "id": "KB-AND-004",
+    "subsystem": "Android IPC / Binder",
+    "failure_type": "BINDER_TRANSACTION_FAILED",
+    "keywords": ["TransactionTooLargeException", "FAILED BINDER TRANSACTION", "parcel size", "binder: send failed"],
+    "root_cause": "Application attempted to pass data buffer > 1MB across Android IPC Binder transaction buffer limit.",
+    "remediation": [
+      "Store large datasets in local SQLite/Room database or file cache instead of Binder Parcel",
+      "Pass URI or file descriptor reference through Intent rather than inlined byte array",
+      "Refactor IPC interface to stream payload in chunks < 64KB"
+    ]
+  },
+  {
+    "id": "KB-PWR-005",
+    "subsystem": "Power Management / Thermal",
+    "failure_type": "THERMAL_SHUTDOWN",
+    "keywords": ["critical temperature reached", "thermal_zone", "throttling", "Thermal shutdown triggered", "emergency poweroff"],
+    "root_cause": "SoC thermal sensor breached critical junction temperature limit (typically > 85°C).",
+    "remediation": [
+      "Inspect thermal interface material (TIM) and heatsink mounting torque",
+      "Enable CPU DVFS throttling policy in device tree thermal-zones node",
+      "Check kiosk chassis airflow and ambient operating environment specifications"
+    ]
+  },
+  {
+    "id": "KB-SPI-006",
+    "subsystem": "SPI Controller",
+    "failure_type": "SPI_DMA_ALIGNMENT_FAULT",
+    "keywords": ["alignment fault", "Unhandled fault", "spi_sync failed", "dma_alloc_coherent", "cache coherency"],
+    "root_cause": "SPI DMA transfer attempted with non-cacheline-aligned memory buffer on ARM64.",
+    "remediation": [
+      "Replace stack buffers with dma_alloc_coherent() or kmalloc(..., GFP_DMA | GFP_KERNEL)",
+      "Align buffers to 64-byte L1 cache boundaries using __aligned(ARCH_DMA_MINALIGN)",
+      "Ensure proper dma_sync_single_for_cpu/device flushes around DMA transfers"
+    ]
+  }
+]

@@ -1,0 +1,48 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Device Tree Overlay for Kernelwise Labs ARM64 Environmental Sensor Board
+ * Target: BCM2711 / Raspberry Pi 4 Compute Module (ARM Cortex-A72 Quad Core)
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "brcm,bcm2711", "brcm,bcm2835";
+
+    fragment@0 {
+        target = <&i2c1>;
+        __overlay__ {
+            #address-cells = <1>;
+            #size-cells = <0>;
+            status = "okay";
+            clock-frequency = <400000>; // 400kHz I2C Fast Mode
+
+            kernelwise_sensor: sensor@76 {
+                compatible = "kernelwise,env-sensor-v1";
+                reg = <0x76>;
+                interrupt-parent = <&gpio>;
+                interrupts = <23 2>; // GPIO 23, IRQ_TYPE_EDGE_FALLING
+                pinctrl-names = "default";
+                pinctrl-0 = <&sensor_int_pins>;
+                status = "okay";
+                
+                // Sensor-specific tuning properties
+                oversampling-temp = <4>;
+                oversampling-pressure = <8>;
+                standby-time-ms = <10>;
+            };
+        };
+    };
+
+    fragment@1 {
+        target = <&gpio>;
+        __overlay__ {
+            sensor_int_pins: sensor_int_pins {
+                brcm,pins = <23>;
+                brcm,function = <0>; // Input
+                brcm,pull = <2>;     // Pull-Up enabled
+            };
+        };
+    };
+};

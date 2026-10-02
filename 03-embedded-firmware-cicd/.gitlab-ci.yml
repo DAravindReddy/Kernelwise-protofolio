@@ -1,0 +1,37 @@
+stages:
+  - lint
+  - test
+  - build
+  - package
+
+image: ghcr.io/kernelwiselabs/embedded-ci-toolchain:latest
+
+static_analysis:
+  stage: lint
+  script:
+    - cppcheck --enable=all --error-exitcode=1 --suppress=missingIncludeSystem src/
+
+unit_tests:
+  stage: test
+  script:
+    - mkdir -p build-test && cd build-test
+    - cmake -DBUILD_TESTS=ON ..
+    - make -j$(nproc)
+    - ./test_suite
+
+cross_compile_arm:
+  stage: build
+  script:
+    - mkdir -p build-arm && cd build-arm
+    - arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -c ../src/ring_buffer.c ../src/sensor_packet.c
+    - arm-none-eabi-ar rcs libfirmware.a *.o
+
+artifacts_package:
+  stage: package
+  script:
+    - mkdir -p release
+    - cp build-arm/*.a release/
+    - sha256sum release/* > release/SHA256SUMS
+  artifacts:
+    paths:
+      - release/

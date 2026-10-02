@@ -1,0 +1,5 @@
+# Python Standard Library only by default (zero external package bloat)
+# Optional for enhanced styling and development:
+pytest>=7.0.0
+flake8>=6.0.0
+mypy>=1.0.0

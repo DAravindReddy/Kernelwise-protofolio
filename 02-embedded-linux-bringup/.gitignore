@@ -1,0 +1,8 @@
+__pycache__/
+*.o
+*.ko
+*.mod.c
+*.order
+*.symvers
+.tmp_versions/
+*.dtb
