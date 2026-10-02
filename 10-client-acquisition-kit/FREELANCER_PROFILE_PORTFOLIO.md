@@ -23,61 +23,60 @@
 ```text
 Hi, I’m Aravind Reddy, Principal Systems Engineer and founder of Kernelwise Labs.
 
-I help hardware startups, OEMs, and engineering teams de-risk embedded Linux board bring-up, microcontroller firmware pipelines, and sub-second Edge AI workloads.
+I help hardware startups, OEMs, and engineering teams de-risk embedded Linux board bring-up, microcontroller firmware CI/CD, and sub-second Edge AI workloads.
 
-Too many hardware projects stall for 2 to 4 months between manufacturing a custom PCB and achieving a reliable Linux boot—derailed by device tree conflicts, I2C/SPI deadlocks, or unautomated firmware releases. I eliminate that bottleneck.
+Too many hardware projects lose months between manufacturing a custom PCB and achieving a reliable Linux boot—derailed by device tree conflicts, I2C/SPI deadlocks, or unautomated firmware pipelines. I eliminate that bottleneck.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-VERIFIED PROOF OF WORK & OPEN SOURCE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Rather than making unverifiable claims, I have published our entire 9-subsystem production engineering monorepo with working C drivers, Yocto layers, Dockerized CI/CD pipelines, and interactive web consoles:
+========================================
+VERIFIED OPEN-SOURCE PROOF OF WORK
+========================================
+We open-sourced our entire 9-subsystem production engineering monorepo with working C drivers, Yocto layers, Dockerized CI/CD, and interactive web consoles:
 
-• Live Agency & Architecture: https://daravindreddy.github.io/Kernelwise-protofolio/
-• Open-Source GitHub Monorepo: https://github.com/DAravindReddy/Kernelwise-protofolio
+• Live Agency: https://daravindreddy.github.io/Kernelwise-protofolio/
+• GitHub Monorepo: https://github.com/DAravindReddy/Kernelwise-protofolio
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HOW WE CAN WORK TOGETHER (4 CORE SERVICE SPRINTS)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+========================================
+HOW WE WORK TOGETHER (4 SPRINT PACKAGES)
+========================================
+1. 2-WEEK BOARD BRING-UP SPRINT ($2,500 – $5,000)
+• ARM64/ARM32 Device Tree (DTS/DTSI) & pinmux mapping.
+• Custom C kernel drivers (/sys/class/hwmon, char devs, threaded IRQs).
+• Minimal Yocto (Kirkstone) or Buildroot bootable rootfs.
+• Resolving I2C clock stretching, SPI timing, and bus deadlock recovery.
 
-1. 2-WEEK BOARD BRING-UP FAST-TRACK SPRINT ($2,500 – $5,000)
-• Custom ARM64/ARM32 Device Tree (DTS/DTSI) authoring and peripheral mapping.
-• C kernel driver development (/sys/class/hwmon, character devices, threaded IRQs).
-• Yocto Project (Kirkstone/Scarthgap) or Buildroot minimal bootable rootfs.
-• Resolving I2C clock stretching, SPI timing, and hardware deadlock triage.
+2. FIRMWARE CI/CD & VIRTUAL QEMU ($2,500 – $4,000)
+• Dockerized toolchains with CMake/Ninja (93% faster compilation).
+• Automated unit testing with Unity C99 test harness.
+• Hardware-free virtual smoke testing with QEMU Cortex-M.
+• SHA-256 release manifests & memory footprint analysis.
 
-2. FIRMWARE CI/CD & VIRTUAL QEMU TEST PIPELINES ($2,500 – $4,000)
-• Dockerized toolchains with CMake, Ninja, and GCC ARM toolchain.
-• Automated Unit Testing with Unity C99 test frameworks.
-• Hardware-free smoke testing in virtualized QEMU Cortex-M / Cortex-A environments.
-• 90%+ build speed acceleration and cryptographic SHA-256 release manifests.
+3. ANDROID POS & KIOSK FLEET HEALTH ($1,500 – $3,500)
+• Zero-root ADB telemetry daemons for retail kiosks.
+• Real-time monitoring of SoC thermals (>48°C) and memory leaks.
+• Field triage of Android Low Memory Killer (LMK) crashes and ANRs.
 
-3. ANDROID POS & KIOSK FLEET DIAGNOSTICS ($1,500 – $3,500)
-• Non-invasive zero-root ADB telemetry daemons for retail kiosks & vending.
-• Real-time monitoring of SoC thermal throttling (>48°C) and memory leaks.
-• Automated triage of Android LMK (Low Memory Killer) crashes and ANRs.
+4. ON-DEVICE EDGE AI & VISION ($4,500 – $7,500)
+• INT8 quantized model inference at 35+ FPS on Cortex-A / NPU.
+• Sensor fusion: RGB vision + AMG8833 thermal grid.
+• 100% on-device inference with zero raw video streaming (GDPR compliant).
 
-4. ON-DEVICE EDGE AI & COMPUTER VISION ($4,500 – $7,500)
-• INT8 quantized neural network inference at 35+ FPS on Cortex-A / NPU silicon.
-• Multi-spectral sensor fusion (RGB vision + AMG8833 thermal grid anomaly detection).
-• 100% on-device local inference with zero raw video transmission (GDPR privacy compliant).
+========================================
+TECHNICAL STACK
+========================================
+• Silicon: ARM Cortex-M0/M3/M4/M7, ARM64 (Cortex-A53/A72), ESP32, STM32.
+• OS: Linux Kernel 5.x/6.x, FreeRTOS, Zephyr RTOS, Embedded Android.
+• Protocols: I2C, SPI, UART, CAN Bus, BLE, Zigbee, Matter 1.2, MQTT, mTLS.
+• Toolchains: Yocto, Buildroot, Docker, QEMU, CMake, Ninja, GDB.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TECHNICAL ARSENAL & TOOLCHAIN
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• Architectures: ARM Cortex-M0/M3/M4/M7, ARM64 (Cortex-A53/A72), ESP32, STM32.
-• Operating Systems: Linux Kernel 5.x/6.x, FreeRTOS, Zephyr RTOS, Embedded Android (AOSP).
-• Protocols: I2C, SPI, UART, CAN Bus, BLE, Zigbee, Matter 1.2, MQTT, mTLS X.509.
-• Tools & Platforms: Yocto, Buildroot, Docker, QEMU, CMake, Ninja, GDB, Logic Analyzers.
+========================================
+DELIVERY GUARANTEES
+========================================
+✓ 100% IP & source code ownership transferred on milestone signoff.
+✓ Daily asynchronous Loom updates & dedicated chat communication.
+✓ Milestone-based billing with zero surprise costs.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-DELIVERY GUARANTEES & TERMS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✓ 100% Intellectual Property & source code ownership transferred upon milestone signoff.
-✓ Daily asynchronous Loom video updates & dedicated Slack/freelancer communication.
-✓ Clear, milestone-based billing with zero surprise costs.
-
-Have an active board bring-up hurdle or firmware automation requirement?
-Click "Hire Me" or send a direct message with your project schematics / requirements for a 15-minute technical discovery session.
+Ready to de-risk your hardware milestone?
+Click 'Hire Me' or message me for a 15-minute technical discovery session.
 ```
 
 ---
