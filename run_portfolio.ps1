@@ -26,13 +26,18 @@ param(
     [Alias("l")]
     [switch]$List,
 
-    [switch]$Website
+    [switch]$Website,
+
+    [Alias("r")]
+    [switch]$Radar
 )
 
 $argsList = @()
 
 if ($List) {
     $argsList += "--list"
+} elseif ($Radar) {
+    $argsList += "--radar"
 } elseif ($Website) {
     $argsList += "--website"
 } elseif ($All) {

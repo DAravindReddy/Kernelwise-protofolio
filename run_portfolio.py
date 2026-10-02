@@ -197,19 +197,24 @@ def interactive_menu():
             print(f"  {p['id']}) {p['title']}{web_tag}")
         print("  -------------------------------------------------------------")
         print("  W) Launch Client Organization Website (http://localhost:3000)")
+        print("  R) Freelance Job Lead Radar & Proposal Generator")
         print("  A) Run ALL projects one by one (Sequential Run)")
         print("  T) Run ALL project unit test suites")
         print("  L) List project details")
         print("  Q) Quit")
         print("=" * 70)
 
-        choice = input("Enter your choice (1-9, W, A, T, L, Q): ").strip().upper()
+        choice = input("Enter your choice (1-9, W, R, A, T, L, Q): ").strip().upper()
 
         if choice == "Q":
             print("\nExiting. Happy engineering!")
             break
         elif choice == "W":
             launch_website()
+            input("\nPress Enter to return to menu...")
+        elif choice == "R":
+            radar_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts", "job_lead_radar.py")
+            subprocess.run([sys.executable, radar_script])
             input("\nPress Enter to return to menu...")
         elif choice == "A":
             run_all_sequentially(mode="run")
@@ -250,8 +255,14 @@ def main():
     parser.add_argument("--test-all", "-t", action="store_true", help="Run test suites for all 9 projects")
     parser.add_argument("--web", "-w", action="store_true", help="Launch web dashboard for the specified project")
     parser.add_argument("--website", action="store_true", help="Launch the client-facing organization website on port 3000")
+    parser.add_argument("--radar", action="store_true", help="Launch the Freelance Job Lead Radar & Proposal Generator")
     parser.add_argument("--list", "-l", action="store_true", help="List all portfolio projects")
     args = parser.parse_args()
+
+    if args.radar:
+        radar_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts", "job_lead_radar.py")
+        subprocess.run([sys.executable, radar_script])
+        return
 
     if args.website:
         launch_website()
