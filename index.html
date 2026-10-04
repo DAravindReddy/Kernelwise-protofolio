@@ -7,25 +7,34 @@
     <meta name="description" content="Kernelwise Labs delivers production-grade embedded systems, custom Linux board bring-up, microcontroller firmware CI/CD, and sub-second Edge AI & Voice workflows for hardware OEMs and smart fleets.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #060913;
-            --bg-secondary: #0c1222;
-            --bg-card: rgba(18, 26, 45, 0.7);
-            --bg-card-hover: rgba(26, 38, 66, 0.85);
+            --bg-primary: #040711;
+            --bg-secondary: #090f1d;
+            --bg-tertiary: #0e172e;
+            --bg-card: rgba(14, 23, 46, 0.72);
+            --bg-card-hover: rgba(22, 36, 70, 0.85);
+            --bg-glass: rgba(8, 14, 29, 0.82);
             --border-color: rgba(255, 255, 255, 0.08);
-            --border-highlight: rgba(0, 229, 255, 0.25);
-            --accent-cyan: #00e5ff;
-            --accent-purple: #8b5cf6;
+            --border-highlight: rgba(0, 242, 254, 0.45);
+            --border-glow: rgba(0, 242, 254, 0.2);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-purple: #9d4edd;
+            --accent-violet: #7b2cbf;
             --accent-green: #10b981;
             --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
             --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
-            --glow: 0 0 25px rgba(0, 229, 255, 0.25);
+            --glow-cyan: 0 0 25px rgba(0, 242, 254, 0.35);
+            --glow-purple: 0 0 25px rgba(157, 78, 221, 0.35);
+            --glow-green: 0 0 20px rgba(16, 185, 129, 0.4);
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         * {
@@ -44,34 +53,85 @@
             font-family: var(--font-main);
             line-height: 1.6;
             overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 15% 15%, rgba(0, 229, 255, 0.07) 0%, transparent 40%),
-                radial-gradient(circle at 85% 60%, rgba(139, 92, 246, 0.07) 0%, transparent 40%);
-            background-attachment: fixed;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Ambient Canvas Background */
+        #circuitCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.65;
+        }
+
+        /* Luminous Scroll Progress Indicator */
+        #scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple), #ff007f);
+            z-index: 9999;
+            box-shadow: 0 0 12px var(--accent-cyan);
+            transition: width 0.05s linear;
+        }
+
+        /* Custom Interactive Glowing Cursor Ring */
+        .cursor-glow {
+            position: fixed;
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 242, 254, 0.07) 0%, rgba(157, 78, 221, 0.03) 40%, transparent 70%);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 1;
+            mix-blend-mode: screen;
+            transition: transform 0.15s ease-out, opacity 0.3s ease;
+        }
+
+        @media (pointer: coarse) {
+            .cursor-glow { display: none; }
         }
 
         /* Container */
         .container {
-            max-width: 1240px;
+            max-width: 1260px;
             margin: 0 auto;
             padding: 0 24px;
+            position: relative;
+            z-index: 2;
         }
 
         /* Navigation */
         header {
             position: sticky;
             top: 0;
-            z-index: 100;
-            backdrop-filter: blur(16px);
-            background: rgba(6, 9, 19, 0.85);
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(4, 7, 17, 0.82);
             border-bottom: 1px solid var(--border-color);
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        header.scrolled {
+            background: rgba(4, 7, 17, 0.94);
+            border-bottom-color: rgba(0, 242, 254, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         .nav-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 76px;
+            height: 78px;
         }
 
         .logo {
@@ -83,11 +143,12 @@
             font-weight: 800;
             font-size: 1.25rem;
             letter-spacing: -0.02em;
+            position: relative;
         }
 
         .logo-badge {
-            width: 38px;
-            height: 38px;
+            width: 40px;
+            height: 40px;
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
             border-radius: 10px;
             display: flex;
@@ -95,14 +156,39 @@
             justify-content: center;
             font-family: var(--font-mono);
             font-size: 1rem;
-            font-weight: 700;
-            color: #000;
-            box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+            font-weight: 800;
+            color: #040711;
+            box-shadow: 0 0 18px rgba(0, 242, 254, 0.45);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s var(--ease-out-expo), box-shadow 0.3s;
+        }
+
+        .logo-badge::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.6) 50%, transparent 60%);
+            transform: rotate(30deg);
+            animation: shineSweep 4s infinite linear;
+        }
+
+        @keyframes shineSweep {
+            0% { transform: translateX(-150%) rotate(30deg); }
+            30%, 100% { transform: translateX(150%) rotate(30deg); }
+        }
+
+        .logo:hover .logo-badge {
+            transform: scale(1.08) rotate(3deg);
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.7);
         }
 
         .nav-links {
             display: flex;
-            gap: 32px;
+            gap: 28px;
             align-items: center;
             list-style: none;
         }
@@ -110,134 +196,294 @@
         .nav-links a {
             text-decoration: none;
             color: var(--text-secondary);
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             font-weight: 500;
             transition: color 0.2s, text-shadow 0.2s;
+            position: relative;
+            padding: 6px 0;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            transition: width 0.25s var(--ease-out-expo);
+            border-radius: 2px;
         }
 
         .nav-links a:hover {
-            color: var(--accent-cyan);
-            text-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
         }
 
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        /* Sound FX Toggle Button */
+        .sound-toggle-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-mono);
+            transition: all 0.2s;
+        }
+
+        .sound-toggle-btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.08);
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.2);
+        }
+
+        .sound-toggle-btn.sound-on {
+            color: var(--accent-green);
+            border-color: rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        /* Buttons */
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
             padding: 12px 24px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-weight: 600;
             font-size: 0.95rem;
             text-decoration: none;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: all 0.25s var(--ease-out-expo);
             border: 1px solid transparent;
+            position: relative;
+            overflow: hidden;
+            font-family: var(--font-main);
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--accent-cyan), #00b4d8);
-            color: #030712;
-            box-shadow: 0 4px 20px rgba(0, 229, 255, 0.3);
+            color: #020617;
+            font-weight: 700;
+            box-shadow: 0 4px 22px rgba(0, 242, 254, 0.35);
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(0, 229, 255, 0.5);
-            background: linear-gradient(135deg, #33ebff, var(--accent-cyan));
+            box-shadow: 0 8px 30px rgba(0, 242, 254, 0.6);
+            background: linear-gradient(135deg, #38f9d7, var(--accent-cyan));
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.04);
             color: var(--text-primary);
             border-color: var(--border-color);
+            backdrop-filter: blur(8px);
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             border-color: var(--accent-cyan);
             color: var(--accent-cyan);
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.15);
         }
 
         /* Hero Section */
         .hero {
-            padding: 100px 0 80px;
-            text-align: center;
+            padding: 80px 0 60px;
             position: relative;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.95fr;
+            gap: 48px;
+            align-items: center;
         }
 
         .pill-badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 16px;
-            background: rgba(0, 229, 255, 0.08);
-            border: 1px solid rgba(0, 229, 255, 0.25);
+            gap: 10px;
+            padding: 7px 16px;
+            background: rgba(0, 242, 254, 0.08);
+            border: 1px solid rgba(0, 242, 254, 0.3);
             border-radius: 9999px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 600;
             color: var(--accent-cyan);
             margin-bottom: 24px;
-            letter-spacing: 0.03em;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
+            font-family: var(--font-mono);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.15);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+            animation: pulseDot 2s infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.3); }
         }
 
         .hero h1 {
             font-size: 3.5rem;
-            font-weight: 800;
-            line-height: 1.15;
+            font-weight: 900;
+            line-height: 1.12;
             letter-spacing: -0.03em;
-            margin-bottom: 24px;
-            max-width: 960px;
-            margin-left: auto;
-            margin-right: auto;
+            margin-bottom: 22px;
         }
 
         .gradient-text {
-            background: linear-gradient(135deg, #ffffff 40%, var(--accent-cyan) 80%, var(--accent-purple) 100%);
+            background: linear-gradient(135deg, #ffffff 25%, var(--accent-cyan) 65%, var(--accent-purple) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 35px rgba(0, 242, 254, 0.25);
         }
 
         .hero p {
-            font-size: 1.25rem;
+            font-size: 1.18rem;
             color: var(--text-secondary);
-            max-width: 780px;
-            margin: 0 auto 40px;
+            margin-bottom: 36px;
             font-weight: 400;
-            line-height: 1.7;
+            line-height: 1.75;
         }
 
         .hero-actions {
             display: flex;
-            justify-content: center;
-            gap: 18px;
-            margin-bottom: 50px;
+            gap: 16px;
+            margin-bottom: 40px;
             flex-wrap: wrap;
         }
 
-        /* Terminal Demo Window */
-        .terminal-preview {
-            max-width: 880px;
-            margin: 0 auto;
-            background: #030712;
+        /* 3D Hardware Telemetry Showcase Card */
+        .hardware-showcase-box {
+            position: relative;
+            background: linear-gradient(135deg, rgba(14, 23, 46, 0.9), rgba(8, 14, 29, 0.95));
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 229, 255, 0.1);
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(0, 242, 254, 0.12);
+            transition: transform 0.4s var(--ease-out-expo), box-shadow 0.4s;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .hardware-showcase-box:hover {
+            border-color: var(--border-highlight);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8), 0 0 50px rgba(0, 242, 254, 0.25);
+        }
+
+        .hardware-image-wrapper {
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            aspect-ratio: 16 / 10;
+            background: #020617;
+        }
+
+        .hardware-image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.6s var(--ease-out-expo);
+        }
+
+        .hardware-showcase-box:hover .hardware-image-wrapper img {
+            transform: scale(1.04);
+        }
+
+        /* Telemetry Badges Overlay on Hardware Box */
+        .hud-overlay-tag {
+            position: absolute;
+            background: rgba(4, 7, 17, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 242, 254, 0.35);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+            z-index: 5;
+            pointer-events: none;
+            animation: floatHud 4s ease-in-out infinite alternate;
+        }
+
+        .hud-tag-top-right {
+            top: 18px;
+            right: 18px;
+            animation-delay: 0s;
+        }
+
+        .hud-tag-bottom-left {
+            bottom: 18px;
+            left: 18px;
+            animation-delay: 1.5s;
+        }
+
+        .hud-tag-bottom-right {
+            bottom: 18px;
+            right: 18px;
+            animation-delay: 0.8s;
+        }
+
+        @keyframes floatHud {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-6px); }
+        }
+
+        /* Interactive AI Diagnostic Terminal Window */
+        .ai-terminal-wrapper {
+            margin: 40px auto 0;
+            background: #02050f;
+            border: 1px solid rgba(0, 242, 254, 0.25);
+            border-radius: 16px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 242, 254, 0.15);
             text-align: left;
             overflow: hidden;
             font-family: var(--font-mono);
-            font-size: 0.88rem;
+            position: relative;
         }
 
         .terminal-header {
-            background: #0f172a;
-            padding: 12px 18px;
+            background: #090e1c;
+            padding: 14px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .terminal-dots {
@@ -256,58 +502,169 @@
         .dot-green { background: #10b981; }
 
         .terminal-title {
-            color: var(--text-muted);
-            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .terminal-badge {
+            background: rgba(0, 242, 254, 0.12);
+            color: var(--accent-cyan);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .terminal-prompts-bar {
+            background: #050914;
+            padding: 10px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .terminal-prompts-bar::-webkit-scrollbar {
+            height: 4px;
+        }
+        .terminal-prompts-bar::-webkit-scrollbar-thumb {
+            background: rgba(0, 242, 254, 0.2);
+            border-radius: 2px;
+        }
+
+        .prompt-chip {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-mono);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .prompt-chip:hover, .prompt-chip.active {
+            background: rgba(0, 242, 254, 0.15);
+            color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.25);
         }
 
         .terminal-body {
             padding: 24px;
             color: #cbd5e1;
-            line-height: 1.65;
-            max-height: 320px;
+            line-height: 1.7;
+            min-height: 280px;
+            max-height: 380px;
             overflow-y: auto;
+            font-size: 0.88rem;
+        }
+
+        .terminal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        .terminal-body::-webkit-scrollbar-thumb {
+            background: rgba(0, 242, 254, 0.2);
+            border-radius: 3px;
         }
 
         .term-prompt { color: var(--accent-cyan); font-weight: 700; }
         .term-success { color: var(--accent-green); font-weight: 600; }
         .term-warn { color: var(--accent-orange); }
+        .term-error { color: var(--accent-red); font-weight: 600; }
         .term-dim { color: var(--text-muted); }
+        .term-highlight { color: #f8fafc; font-weight: 600; }
+        .term-tag {
+            background: rgba(157, 78, 221, 0.2);
+            color: #d8b4fe;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 6px;
+        }
 
-        /* Metric Bar */
+        .cursor-blink {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: var(--accent-cyan);
+            vertical-align: middle;
+            margin-left: 4px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Metrics HUD Bar */
         .metrics-banner {
-            padding: 40px 0;
+            padding: 48px 0;
             border-top: 1px solid var(--border-color);
             border-bottom: 1px solid var(--border-color);
-            background: rgba(12, 18, 34, 0.6);
+            background: linear-gradient(180deg, rgba(8, 14, 29, 0.8), rgba(4, 7, 17, 0.95));
             margin: 60px 0;
+            position: relative;
         }
 
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
             gap: 32px;
             text-align: center;
         }
 
+        .metric-item {
+            position: relative;
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.3s;
+        }
+
+        .metric-item:hover {
+            background: rgba(0, 242, 254, 0.04);
+            border-color: rgba(0, 242, 254, 0.2);
+            transform: translateY(-3px);
+        }
+
         .metric-item .val {
-            font-size: 2.8rem;
-            font-weight: 800;
+            font-size: 3rem;
+            font-weight: 900;
             color: var(--accent-cyan);
             font-family: var(--font-mono);
             line-height: 1;
             margin-bottom: 8px;
+            text-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
         }
 
         .metric-item .lbl {
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             color: var(--text-secondary);
             font-weight: 500;
+        }
+
+        .metric-pulse-line {
+            height: 2px;
+            width: 40px;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            margin: 8px auto 0;
         }
 
         /* Section Common */
         .section-header {
             text-align: center;
-            max-width: 720px;
+            max-width: 760px;
             margin: 0 auto 60px;
         }
 
@@ -317,25 +674,69 @@
             font-size: 0.85rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.12em;
             margin-bottom: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .section-title {
-            font-size: 2.4rem;
+            font-size: 2.5rem;
             font-weight: 800;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.025em;
             margin-bottom: 16px;
+            line-height: 1.2;
         }
 
         .section-subtitle {
             color: var(--text-secondary);
             font-size: 1.1rem;
+            line-height: 1.7;
+        }
+
+        /* Dynamic Mouse Spotlight Cards */
+        .spotlight-card {
+            position: relative;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 32px;
+            transition: transform 0.35s var(--ease-out-expo), box-shadow 0.35s, border-color 0.35s;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .spotlight-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            background: radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 242, 254, 0.12), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .spotlight-card:hover {
+            border-color: var(--border-highlight);
+            transform: translateY(-5px);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 242, 254, 0.15);
+        }
+
+        .spotlight-card:hover::before {
+            opacity: 1;
         }
 
         /* Services Grid */
         .services {
-            padding: 80px 0;
+            padding: 90px 0;
         }
 
         .services-grid {
@@ -344,38 +745,24 @@
             gap: 28px;
         }
 
-        .service-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 32px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .service-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--border-highlight);
-            background: var(--bg-card-hover);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), var(--glow);
-        }
-
         .service-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: rgba(0, 229, 255, 0.1);
-            border: 1px solid rgba(0, 229, 255, 0.2);
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: rgba(0, 242, 254, 0.1);
+            border: 1px solid rgba(0, 242, 254, 0.25);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 20px;
+            font-size: 1.6rem;
+            margin-bottom: 22px;
             color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.15);
+            transition: transform 0.3s;
+        }
+
+        .spotlight-card:hover .service-icon {
+            transform: scale(1.1) rotate(4deg);
         }
 
         .service-card h3 {
@@ -388,7 +775,7 @@
         .service-card p {
             color: var(--text-secondary);
             font-size: 0.95rem;
-            line-height: 1.6;
+            line-height: 1.65;
             margin-bottom: 24px;
         }
 
@@ -399,6 +786,8 @@
             justify-content: space-between;
             align-items: center;
             font-size: 0.88rem;
+            position: relative;
+            z-index: 2;
         }
 
         .service-pricing {
@@ -411,72 +800,219 @@
             color: var(--text-muted);
             text-transform: uppercase;
             font-size: 0.75rem;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
+            font-weight: 600;
+        }
+
+        /* Interactive Architecture Visualizer */
+        .architecture-section {
+            padding: 90px 0;
+            background: linear-gradient(180deg, rgba(8, 14, 29, 0.6), rgba(4, 7, 17, 0.9));
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .arch-pipeline {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .arch-step-node {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 22px 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s var(--ease-out-expo);
+            position: relative;
+        }
+
+        .arch-step-node:not(:last-child)::after {
+            content: '➔';
+            position: absolute;
+            right: -14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+            color: var(--accent-cyan);
+            z-index: 5;
+            text-shadow: 0 0 8px var(--accent-cyan);
+        }
+
+        .arch-step-node.active, .arch-step-node:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.08);
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.25);
+            transform: translateY(-4px);
+        }
+
+        .arch-step-node .node-icon {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .arch-step-node .node-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .arch-step-node .node-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .arch-detail-display {
+            background: #060a17;
+            border: 1px solid var(--border-highlight);
+            border-radius: 16px;
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .arch-detail-left h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .arch-detail-left p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .arch-specs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
+
+        .arch-spec-row {
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .arch-spec-row span:first-child {
+            color: var(--text-muted);
+        }
+
+        .arch-spec-row span:last-child {
+            color: var(--accent-cyan);
+            font-weight: 600;
         }
 
         /* Showcase / Projects Section */
         .showcase {
-            padding: 80px 0;
-            background: rgba(12, 18, 34, 0.4);
-            border-top: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
+            padding: 90px 0;
+            position: relative;
+        }
+
+        .filter-tabs-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 48px;
         }
 
         .filter-tabs {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 40px;
+            display: inline-flex;
+            background: rgba(14, 23, 46, 0.8);
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            border-radius: 9999px;
+            gap: 6px;
             flex-wrap: wrap;
+            backdrop-filter: blur(16px);
         }
 
         .filter-btn {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-color);
+            background: transparent;
+            border: none;
             color: var(--text-secondary);
-            padding: 8px 18px;
+            padding: 9px 20px;
             border-radius: 9999px;
             font-size: 0.9rem;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.25s var(--ease-out-expo);
+            font-family: var(--font-main);
         }
 
         .filter-btn.active, .filter-btn:hover {
-            background: var(--accent-cyan);
-            color: #000;
-            font-weight: 600;
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+            background: linear-gradient(135deg, var(--accent-cyan), #00b4d8);
+            color: #040711;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
         }
 
         .projects-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-            gap: 28px;
+            gap: 30px;
         }
 
         .project-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 28px;
-            transition: all 0.3s;
+            border-radius: 18px;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            transition: all 0.35s var(--ease-out-expo);
+            position: relative;
         }
 
-        .project-card:hover {
-            border-color: var(--border-highlight);
-            transform: translateY(-4px);
+        .project-card.featured-card {
+            border-color: rgba(0, 242, 254, 0.3);
+            background: linear-gradient(180deg, rgba(20, 32, 64, 0.8), rgba(14, 23, 46, 0.9));
+        }
+
+        .project-thumb {
+            width: 100%;
+            height: 190px;
+            position: relative;
+            overflow: hidden;
+            background: #020617;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .project-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s var(--ease-out-expo);
+        }
+
+        .project-card:hover .project-thumb img {
+            transform: scale(1.08);
+        }
+
+        .project-content {
+            padding: 26px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
         }
 
         .project-meta {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .proj-badge {
@@ -491,7 +1027,7 @@
         .proj-badge.live-web {
             background: rgba(16, 185, 129, 0.15);
             color: var(--accent-green);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            border: 1px solid rgba(16, 185, 129, 0.35);
             font-weight: 600;
         }
 
@@ -499,6 +1035,7 @@
             font-size: 1.25rem;
             font-weight: 700;
             margin-bottom: 10px;
+            line-height: 1.35;
         }
 
         .project-card p {
@@ -516,17 +1053,19 @@
         }
 
         .tag {
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             font-family: var(--font-mono);
             color: var(--accent-cyan);
-            background: rgba(0, 229, 255, 0.08);
-            padding: 3px 8px;
-            border-radius: 4px;
+            background: rgba(0, 242, 254, 0.08);
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            padding: 4px 9px;
+            border-radius: 6px;
         }
 
         .project-links {
             display: flex;
-            gap: 12px;
+            justify-content: space-between;
+            align-items: center;
             border-top: 1px solid var(--border-color);
             padding-top: 16px;
         }
@@ -538,43 +1077,55 @@
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
+            transition: color 0.2s, transform 0.2s;
         }
 
         .project-links a:hover {
-            text-decoration: underline;
+            color: #fff;
+            transform: translateX(3px);
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
         }
 
         /* SDLC Framework */
         .sdlc {
-            padding: 80px 0;
+            padding: 90px 0;
+            background: linear-gradient(180deg, rgba(8, 14, 29, 0.5), rgba(4, 7, 17, 0.8));
+            border-top: 1px solid var(--border-color);
         }
 
         .timeline-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 22px;
             position: relative;
         }
 
         .timeline-step {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 24px;
+            border-radius: 16px;
+            padding: 26px;
             position: relative;
+            transition: all 0.3s;
+        }
+
+        .timeline-step:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 242, 254, 0.15);
+            transform: translateY(-4px);
         }
 
         .step-number {
             font-family: var(--font-mono);
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 800;
             color: var(--accent-cyan);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .timeline-step h4 {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: 700;
             margin-bottom: 8px;
         }
@@ -582,11 +1133,131 @@
         .timeline-step p {
             font-size: 0.88rem;
             color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Interactive Scope & Sprint Cost Calculator */
+        .calculator-section {
+            padding: 90px 0;
+            position: relative;
+        }
+
+        .calculator-card {
+            background: linear-gradient(135deg, rgba(14, 23, 46, 0.85), rgba(8, 14, 29, 0.95));
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 20px;
+            padding: 44px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(0, 242, 254, 0.12);
+        }
+
+        .calc-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 0.9fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .calc-options-group {
+            margin-bottom: 24px;
+        }
+
+        .calc-options-label {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: block;
+            color: var(--text-primary);
+        }
+
+        .calc-pill-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .calc-pill {
+            padding: 9px 18px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-mono);
+        }
+
+        .calc-pill.active, .calc-pill:hover {
+            border-color: var(--accent-cyan);
+            color: #fff;
+            background: rgba(0, 242, 254, 0.12);
+            box-shadow: 0 0 14px rgba(0, 242, 254, 0.2);
+        }
+
+        .calc-checkboxes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .calc-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .calc-checkbox-label:hover {
+            border-color: rgba(0, 242, 254, 0.4);
+            color: #fff;
+        }
+
+        .calc-summary-box {
+            background: #030611;
+            border: 1px solid var(--border-highlight);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .calc-summary-title {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+            font-family: var(--font-mono);
+        }
+
+        .calc-summary-price {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            line-height: 1.1;
+            margin-bottom: 8px;
+            text-shadow: 0 0 25px rgba(0, 242, 254, 0.4);
+        }
+
+        .calc-summary-timeline {
+            color: var(--accent-green);
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+            font-family: var(--font-mono);
         }
 
         /* Engagement Models / Pricing */
         .pricing {
-            padding: 80px 0;
+            padding: 90px 0;
             background: rgba(12, 18, 34, 0.4);
             border-top: 1px solid var(--border-color);
         }
@@ -594,38 +1265,41 @@
         .pricing-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 28px;
+            gap: 30px;
         }
 
         .pricing-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 36px;
+            border-radius: 18px;
+            padding: 38px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             position: relative;
+            transition: all 0.35s var(--ease-out-expo);
         }
 
         .pricing-card.featured {
             border-color: var(--accent-cyan);
-            background: rgba(20, 32, 58, 0.85);
-            box-shadow: 0 10px 40px rgba(0, 229, 255, 0.15);
+            background: rgba(18, 30, 56, 0.9);
+            box-shadow: 0 15px 50px rgba(0, 242, 254, 0.2);
+            transform: scale(1.02);
         }
 
         .featured-tag {
             position: absolute;
-            top: -12px;
-            right: 24px;
+            top: -14px;
+            right: 28px;
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-            color: #000;
+            color: #040711;
             font-size: 0.75rem;
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
-            padding: 4px 12px;
+            padding: 5px 14px;
             border-radius: 9999px;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4);
         }
 
         .pricing-card h3 {
@@ -634,8 +1308,8 @@
         }
 
         .pricing-card .price {
-            font-size: 2.2rem;
-            font-weight: 800;
+            font-size: 2.3rem;
+            font-weight: 900;
             color: var(--accent-cyan);
             font-family: var(--font-mono);
             margin: 16px 0;
@@ -666,21 +1340,24 @@
         .pricing-card ul li::before {
             content: "✓";
             color: var(--accent-green);
-            font-weight: 700;
+            font-weight: 800;
         }
 
-        /* Interactive Scope Estimator */
+        /* Interactive Scope Inquiry / Contact Section */
         .estimator {
-            padding: 80px 0;
+            padding: 90px 0;
+            position: relative;
         }
 
         .estimator-box {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 40px;
-            max-width: 840px;
+            border-radius: 20px;
+            padding: 44px;
+            max-width: 860px;
             margin: 0 auto;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            position: relative;
         }
 
         .form-group {
@@ -691,34 +1368,38 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
+            color: var(--text-primary);
         }
 
         .form-control {
             width: 100%;
-            padding: 12px 16px;
-            background: rgba(0, 0, 0, 0.4);
+            padding: 13px 18px;
+            background: rgba(2, 6, 17, 0.6);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 10px;
             color: #fff;
             font-family: var(--font-main);
             font-size: 0.95rem;
-            transition: border-color 0.2s;
+            transition: border-color 0.25s, box-shadow 0.25s;
         }
 
         .form-control:focus {
             outline: none;
             border-color: var(--accent-cyan);
-            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.25);
+            background: rgba(2, 6, 17, 0.85);
         }
 
         /* Footer */
         footer {
-            background: #030611;
+            background: #02040a;
             border-top: 1px solid var(--border-color);
-            padding: 60px 0 40px;
+            padding: 70px 0 40px;
             font-size: 0.92rem;
             color: var(--text-muted);
+            position: relative;
+            z-index: 10;
         }
 
         .footer-grid {
@@ -732,24 +1413,27 @@
             color: var(--text-primary);
             font-size: 1rem;
             font-weight: 700;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
+            letter-spacing: -0.01em;
         }
 
         .footer-col ul {
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .footer-col a {
             color: var(--text-muted);
             text-decoration: none;
-            transition: color 0.2s;
+            transition: color 0.2s, transform 0.2s;
+            display: inline-block;
         }
 
         .footer-col a:hover {
             color: var(--accent-cyan);
+            transform: translateX(3px);
         }
 
         .footer-bottom {
@@ -762,17 +1446,81 @@
             gap: 16px;
         }
 
+        /* Floating Back-To-Top Button with Scroll Ring */
+        .back-to-top {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(8, 14, 29, 0.85);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-cyan);
+            cursor: pointer;
+            z-index: 999;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 12px 30px rgba(0, 242, 254, 0.3);
+        }
+
+        /* Reveal on scroll animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s var(--ease-out-expo), transform 0.7s var(--ease-out-expo);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 960px) {
+            .hero-grid { grid-template-columns: 1fr; }
+            .arch-pipeline { grid-template-columns: 1fr; }
+            .arch-step-node:not(:last-child)::after { display: none; }
+            .arch-detail-display { grid-template-columns: 1fr; }
+            .calc-grid { grid-template-columns: 1fr; }
+        }
+
         @media (max-width: 768px) {
-            .hero h1 { font-size: 2.4rem; }
+            .hero h1 { font-size: 2.5rem; }
             .nav-links { display: none; }
             .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+            .calc-checkboxes { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
+    <!-- Luminous Scroll Progress Line -->
+    <div id="scroll-progress"></div>
+
+    <!-- Interactive Ambient Cursor Ring -->
+    <div class="cursor-glow" id="cursorGlow"></div>
+
+    <!-- Interactive Ambient Neural Circuit Canvas -->
+    <canvas id="circuitCanvas"></canvas>
+
     <!-- Header Navigation -->
-    <header>
+    <header id="mainHeader">
         <div class="container nav-container">
             <a href="#" class="logo">
                 <div class="logo-badge">KW</div>
@@ -780,13 +1528,18 @@
             </a>
             <ul class="nav-links">
                 <li><a href="#services">Services</a></li>
+                <li><a href="#architecture">Architecture</a></li>
                 <li><a href="#showcase">Engineering Showcases</a></li>
+                <li><a href="#calculator">Scope Calculator</a></li>
                 <li><a href="#sdlc">SDLC Lifecycle</a></li>
-                <li><a href="#pricing">Engagement Models</a></li>
+                <li><a href="#pricing">Pricing</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
-            <div>
-                <a href="#contact" class="btn btn-primary">Book Technical Discovery</a>
+            <div class="header-actions">
+                <button class="sound-toggle-btn" id="soundToggle" title="Toggle cybernetic telemetry sound effects">
+                    <span id="soundIcon">🔇</span> <span id="soundText">SFX: OFF</span>
+                </button>
+                <a href="#contact" class="btn btn-primary">Book Discovery Call</a>
             </div>
         </div>
     </header>
@@ -794,71 +1547,175 @@
     <!-- Hero Section -->
     <section class="hero">
         <div class="container">
-            <div class="pill-badge">Silicon-to-Cloud & Edge AI Engineering</div>
-            <h1>High-Reliability Embedded Systems & <span class="gradient-text">Sub-Second AI Workflows</span></h1>
-            <p>
-                We partner with hardware startups and IoT OEMs to de-risk ARM64 Linux board bring-up, automate microcontroller firmware CI/CD pipelines, and deploy on-device Edge AI vision and sub-second voice agents.
-            </p>
-            <div class="hero-actions">
-                <a href="#contact" class="btn btn-primary">Request Fixed-Scope Proposal</a>
-                <a href="https://github.com/DAravindReddy/Kernelwise-protofolio" target="_blank" class="btn btn-secondary">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                    View Code on GitHub
-                </a>
+            <div class="hero-grid">
+                <div>
+                    <div class="pill-badge">
+                        <span class="status-dot"></span>
+                        Silicon-to-Cloud & On-Device Edge AI
+                    </div>
+                    <h1>High-Reliability Embedded Systems & <span class="gradient-text">Sub-Second AI Workflows</span></h1>
+                    <p>
+                        We partner with hardware startups and IoT OEMs to de-risk ARM64 Linux board bring-up, automate microcontroller firmware CI/CD pipelines, and deploy on-device Edge AI vision and sub-second voice agents.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="#calculator" class="btn btn-primary">
+                            <span>Calculate Sprint Scope</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio" target="_blank" class="btn btn-secondary">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                            <span>Open Source Monorepo</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 3D Hardware Telemetry Showcase Box -->
+                <div class="hardware-showcase-box" id="heroHardwareCard">
+                    <div class="hardware-image-wrapper">
+                        <img src="assets/neural_chip_hero.jpg" alt="ARM64 AI Neural Processor Silicon Telemetry" loading="eager">
+                        <div class="hud-overlay-tag hud-tag-top-right">
+                            <span class="status-dot"></span>
+                            <span>ARM64 NPU · 10 TOPS/W</span>
+                        </div>
+                        <div class="hud-overlay-tag hud-tag-bottom-left">
+                            <span>⚡ SUB-500MS VOICE SLA</span>
+                        </div>
+                        <div class="hud-overlay-tag hud-tag-bottom-right">
+                            <span style="color:var(--accent-green)">✔ 9/9 SUBSYSTEMS NOMINAL</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Terminal Live Preview -->
-            <div class="terminal-preview">
+            <!-- Interactive AI Copilot & Hardware Diagnostic Terminal -->
+            <div class="ai-terminal-wrapper reveal" id="ai-terminal">
                 <div class="terminal-header">
                     <div class="terminal-dots">
                         <span class="dot dot-red"></span>
                         <span class="dot dot-yellow"></span>
                         <span class="dot dot-green"></span>
                     </div>
-                    <div class="terminal-title">kernelwise-runner — automated sequential verification</div>
-                    <div style="font-size:0.75rem; color:var(--accent-cyan)">Python 3.12 · ARM64</div>
+                    <div class="terminal-title">
+                        <span>kernelwise-copilot // automated silicon & telemetry diagnostic engine</span>
+                        <span class="terminal-badge">LIVE SIMULATOR</span>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--accent-cyan)">Python 3.12 · ARM64 · LLM RAG</div>
                 </div>
-                <div class="terminal-body">
-                    <p><span class="term-prompt">$</span> python run_portfolio.py --all</p>
-                    <p class="term-dim">Starting sequential one-by-one execution of all 9 engineering subsystems...</p>
-                    <p><span class="term-success">[PASS]</span> 01-android-adb-telemetry       · Non-invasive thermal/CPU daemon (Target: sim-kiosk-arm64)</p>
-                    <p><span class="term-success">[PASS]</span> 02-embedded-linux-bringup        · BCM2711 DTS binding & I2C driver probe (/sys/class/hwmon0)</p>
-                    <p><span class="term-success">[PASS]</span> 03-embedded-firmware-cicd        · Unity C99 tests + 16KB ARM Cortex-M4 image + QEMU smoke</p>
-                    <p><span class="term-success">[PASS]</span> 04-ai-rootcause-agent            · RAG semantic vector diagnostic (I2C lockup isolated in 0.17ms)</p>
-                    <p><span class="term-success">[PASS]</span> 05-voice-agent-workflow          · P50 response latency: 423.6ms (Sub-500ms SLA verified)</p>
-                    <p><span class="term-success">[PASS]</span> 06-iot-sensor-to-cloud           · STM32 multi-node MQTT ingestion into AWS IoT Core</p>
-                    <p><span class="term-success">[PASS]</span> 07-developer-automation-toolkit  · kw-tools environment audit & automated crash log scanner</p>
-                    <p><span class="term-success">[PASS]</span> 08-smart-device-matter-gateway   · CSA Matter 1.2 clusters (OnOff, LevelControl, DoorLock)</p>
-                    <p><span class="term-success">[PASS]</span> 09-smart-edge-ai-camera          · On-device INT8 inference @ 36.4 FPS + 74.9°C Hotspot Alert</p>
-                    <p class="term-success" style="margin-top: 8px;">[ALL PASSED] 100% of hardware and AI contracts nominal.</p>
+
+                <!-- Quick Simulation Prompt Chips -->
+                <div class="terminal-prompts-bar">
+                    <button class="prompt-chip active" onclick="runTerminalSim('all')">▶ Run All 9 Subsystems</button>
+                    <button class="prompt-chip" onclick="runTerminalSim('i2c')">⚡ Triage I2C Deadlock</button>
+                    <button class="prompt-chip" onclick="runTerminalSim('thermal')">📱 Android Kiosk Thermal (>48°C)</button>
+                    <button class="prompt-chip" onclick="runTerminalSim('voice')">🎙️ Voice AI Sub-500ms SLA</button>
+                    <button class="prompt-chip" onclick="runTerminalSim('qemu')">⚙️ QEMU Cortex-M4 Firmware</button>
+                    <button class="prompt-chip" onclick="runTerminalSim('vision')">📷 Edge AI INT8 Anomaly</button>
+                </div>
+
+                <div class="terminal-body" id="termOutput">
+                    <p><span class="term-prompt">kw-copilot:~$</span> python run_portfolio.py --all</p>
+                    <p class="term-dim">Starting sequential one-by-one verification of all 9 engineering subsystems...</p>
+                    <p><span class="term-success">[PASS]</span> <span class="term-tag">01-ANDROID</span> Non-invasive thermal/CPU daemon (Target: sim-kiosk-arm64, SoC: 41.2°C)</p>
+                    <p><span class="term-success">[PASS]</span> <span class="term-tag">02-LINUX</span> BCM2711 DTS binding & I2C driver probe (/sys/class/hwmon0 nominal)</p>
+                    <p><span class="term-success">[PASS]</span> <span class="term-tag">03-FIRMWARE</span> Unity C99 tests + 16KB ARM Cortex-M4 image + QEMU smoke passed</p>
+                    <p><span class="term-success">[PASS]</span> <span class="term-tag">04-AI-RAG</span> Semantic vector diagnostic: I2C clock stretching isolated in 0.17ms</p>
+                    <p><span class="term-success">[PASS]</span> <span class="term-tag">05-VOICE-AI</span> P50 response latency: 423.6ms (Sub-500ms SLA strictly verified)</p>
+                    <p><span class="term-success">[PASS]</span> <span class="term-tag">06-IOT-AWS</span> Multi-node MQTT sensor stream ingested into AWS IoT Core (0 packet loss)</p>
+                    <p><span class="term-success">[PASS]</span> <span class="term-tag">07-TOOLKIT</span> kw-tools environment audit & automated crash log scanner passed</p>
+                    <p><span class="term-success">[PASS]</span> <span class="term-tag">08-MATTER</span> CSA Matter 1.2 clusters (OnOff, LevelControl, DoorLock commissioned)</p>
+                    <p><span class="term-success">[PASS]</span> <span class="term-tag">09-EDGE-AI</span> On-device INT8 inference @ 36.4 FPS + 74.9°C Hotspot Alert emitted</p>
+                    <p class="term-success" style="margin-top: 10px;">[ALL PASSED] 100% of hardware and AI contracts nominal. Ready for deployment.<span class="cursor-blink"></span></p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Metrics Bar -->
+    <!-- Metrics Bar / Telemetry HUD -->
     <section class="metrics-banner">
         <div class="container">
             <div class="metrics-grid">
-                <div class="metric-item">
-                    <div class="val">93%</div>
+                <div class="metric-item reveal">
+                    <div class="val counter" data-target="93" data-suffix="%">0%</div>
                     <div class="lbl">CI/CD Build Acceleration</div>
+                    <div class="metric-pulse-line"></div>
                 </div>
-                <div class="metric-item">
-                    <div class="val">&lt;500ms</div>
+                <div class="metric-item reveal">
+                    <div class="val counter" data-target="424" data-prefix="<" data-suffix="ms">0ms</div>
                     <div class="lbl">Voice AI Round-Trip Latency</div>
+                    <div class="metric-pulse-line"></div>
                 </div>
-                <div class="metric-item">
-                    <div class="val">95%+</div>
+                <div class="metric-item reveal">
+                    <div class="val counter" data-target="95" data-suffix="%+">0%</div>
                     <div class="lbl">RAG Root-Cause Accuracy</div>
+                    <div class="metric-pulse-line"></div>
                 </div>
-                <div class="metric-item">
-                    <div class="val">99.4%</div>
+                <div class="metric-item reveal">
+                    <div class="val counter" data-target="99.4" data-decimals="1" data-suffix="%">0%</div>
                     <div class="lbl">Edge Video Bandwidth Reduction</div>
+                    <div class="metric-pulse-line"></div>
                 </div>
-                <div class="metric-item">
+                <div class="metric-item reveal">
                     <div class="val">0-Root</div>
                     <div class="lbl">Non-Invasive Device Telemetry</div>
+                    <div class="metric-pulse-line"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Silicon-to-Cloud Architecture Section -->
+    <section class="architecture-section" id="architecture">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-tag">// End-To-End Topology</div>
+                <h2 class="section-title">Silicon-to-Cloud System Architecture</h2>
+                <p class="section-subtitle">Click any architectural layer to inspect the communication protocols, firmware contracts, and open-source verification suite.</p>
+            </div>
+
+            <!-- Architecture Pipeline Nodes -->
+            <div class="arch-pipeline reveal">
+                <div class="arch-step-node active" onclick="selectArchStep(0)">
+                    <div class="node-icon">⚡</div>
+                    <div class="node-title">1. Silicon & Sensors</div>
+                    <div class="node-sub">ARM64 / Cortex-M / I2C</div>
+                </div>
+                <div class="arch-step-node" onclick="selectArchStep(1)">
+                    <div class="node-icon">🐧</div>
+                    <div class="node-title">2. Kernel & RTOS</div>
+                    <div class="node-sub">Linux 6.6 LTS / DTS / Yocto</div>
+                </div>
+                <div class="arch-step-node" onclick="selectArchStep(2)">
+                    <div class="node-icon">🧠</div>
+                    <div class="node-title">3. Edge AI & Gateway</div>
+                    <div class="node-sub">INT8 NPU / Matter 1.2</div>
+                </div>
+                <div class="arch-step-node" onclick="selectArchStep(3)">
+                    <div class="node-icon">☁️</div>
+                    <div class="node-title">4. Cloud Telemetry</div>
+                    <div class="node-sub">AWS IoT / mTLS / Terraform</div>
+                </div>
+                <div class="arch-step-node" onclick="selectArchStep(4)">
+                    <div class="node-icon">🎙️</div>
+                    <div class="node-title">5. AI Interfaces</div>
+                    <div class="node-sub">Voice Agent / Web HUD</div>
+                </div>
+            </div>
+
+            <!-- Architecture Detailed Card Display -->
+            <div class="arch-detail-display reveal" id="archDetailBox">
+                <div class="arch-detail-left">
+                    <span class="terminal-badge" id="archLayerTag">LAYER 01 // PHYSICAL SILICON</span>
+                    <h3 id="archLayerTitle" style="margin-top:10px;">Custom Microcontrollers & Microprocessors</h3>
+                    <p id="archLayerDesc">Direct peripheral bus interfacing across I2C, SPI, UART, and CAN bus. We audit hardware pinmux configurations, power rail sequencing, and clock stretching behaviors on physical benches.</p>
+                    <a href="#contact" class="btn btn-secondary" style="font-size:0.88rem; padding:8px 18px;">Consult on Silicon Target</a>
+                </div>
+                <div class="arch-detail-right">
+                    <div class="arch-specs-list" id="archSpecsList">
+                        <div class="arch-spec-row"><span>Supported Silicon:</span> <span>STM32, NXP i.MX8, BCM2711, ESP32</span></div>
+                        <div class="arch-spec-row"><span>Hardware Interfaces:</span> <span>I2C, SPI, UART, GPIO, CAN-FD</span></div>
+                        <div class="arch-spec-row"><span>Signal Verification:</span> <span>100MHz Logic Analyzer + Rigol Scope</span></div>
+                        <div class="arch-spec-row"><span>Portfolio Proof:</span> <span>02-embedded-linux-bringup</span></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -867,7 +1724,7 @@
     <!-- Services Section -->
     <section class="services" id="services">
         <div class="container">
-            <div class="section-header">
+            <div class="section-header reveal">
                 <div class="section-tag">// Core Client Offerings</div>
                 <h2 class="section-title">Specialized Engineering Services</h2>
                 <p class="section-subtitle">Turnkey hardware bring-up, automation pipelines, and modern AI deployments designed for strict hardware constraints.</p>
@@ -875,7 +1732,7 @@
 
             <div class="services-grid">
                 <!-- 1 -->
-                <div class="service-card">
+                <div class="spotlight-card service-card reveal">
                     <div>
                         <div class="service-icon">📱</div>
                         <h3>Android Fleet Telemetry & Health Monitoring</h3>
@@ -888,7 +1745,7 @@
                 </div>
 
                 <!-- 2 -->
-                <div class="service-card">
+                <div class="spotlight-card service-card reveal">
                     <div>
                         <div class="service-icon">🐧</div>
                         <h3>Embedded Linux Board Bring-Up & BSP</h3>
@@ -901,7 +1758,7 @@
                 </div>
 
                 <!-- 3 -->
-                <div class="service-card">
+                <div class="spotlight-card service-card reveal">
                     <div>
                         <div class="service-icon">⚙️</div>
                         <h3>Microcontroller Firmware CI/CD & QEMU</h3>
@@ -914,7 +1771,7 @@
                 </div>
 
                 <!-- 4 -->
-                <div class="service-card">
+                <div class="spotlight-card service-card reveal">
                     <div>
                         <div class="service-icon">🧠</div>
                         <h3>AI Root-Cause Diagnostic Agents</h3>
@@ -927,7 +1784,7 @@
                 </div>
 
                 <!-- 5 -->
-                <div class="service-card">
+                <div class="spotlight-card service-card reveal">
                     <div>
                         <div class="service-icon">🎙️</div>
                         <h3>Sub-Second Voice AI Support Agents</h3>
@@ -940,7 +1797,7 @@
                 </div>
 
                 <!-- 6 -->
-                <div class="service-card">
+                <div class="spotlight-card service-card reveal">
                     <div>
                         <div class="service-icon">☁️</div>
                         <h3>IoT Sensor-to-Cloud (STM32/ESP32 to AWS)</h3>
@@ -953,7 +1810,7 @@
                 </div>
 
                 <!-- 7 -->
-                <div class="service-card">
+                <div class="spotlight-card service-card reveal">
                     <div>
                         <div class="service-icon">🏠</div>
                         <h3>Matter 1.2 Smart Home Edge Gateways</h3>
@@ -966,7 +1823,7 @@
                 </div>
 
                 <!-- 8 -->
-                <div class="service-card">
+                <div class="spotlight-card service-card reveal">
                     <div>
                         <div class="service-icon">📷</div>
                         <h3>On-Device Edge AI Vision & Thermal Appliances</h3>
@@ -984,154 +1841,314 @@
     <!-- Engineering Showcase Section -->
     <section class="showcase" id="showcase">
         <div class="container">
-            <div class="section-header">
+            <div class="section-header reveal">
                 <div class="section-tag">// Tested Subsystems</div>
                 <h2 class="section-title">Verified Engineering Showcases</h2>
                 <p class="section-subtitle">Every project in our portfolio is fully implemented with unit test suites, execution scripts, and interactive browser consoles.</p>
             </div>
 
-            <div class="projects-grid">
-                <!-- 01 -->
-                <div class="project-card">
-                    <div class="project-meta">
-                        <span class="proj-badge">Project 01</span>
-                        <span class="proj-badge live-web">Live Web UI (8080)</span>
+            <!-- Filter Tabs -->
+            <div class="filter-tabs-container reveal">
+                <div class="filter-tabs">
+                    <button class="filter-btn active" onclick="filterProjects('all')">All Systems (9)</button>
+                    <button class="filter-btn" onclick="filterProjects('kernel')">Kernel & Bring-Up</button>
+                    <button class="filter-btn" onclick="filterProjects('firmware')">Firmware & CI/CD</button>
+                    <button class="filter-btn" onclick="filterProjects('ai')">Edge AI & Vision</button>
+                    <button class="filter-btn" onclick="filterProjects('iot')">IoT & Fleet</button>
+                </div>
+            </div>
+
+            <div class="projects-grid" id="projectsGrid">
+                <!-- 01: Android Telemetry -->
+                <div class="project-card spotlight-card reveal" data-category="iot">
+                    <div class="project-thumb">
+                        <img src="assets/portfolio/03_android_kiosk_telemetry.jpg" alt="Android Kiosk Fleet Telemetry">
                     </div>
-                    <h4>Android Device Fleet Telemetry Daemon</h4>
-                    <p>Non-invasive ADB telemetry collection for Android POS & kiosk fleets. Monitors SoC thermal throttling, RAM leaks, and top PIDs with automated alert dispatch.</p>
-                    <div class="project-tags">
-                        <span class="tag">Android ADB</span>
-                        <span class="tag">Python 3.12</span>
-                        <span class="tag">Live Web UI</span>
-                    </div>
-                    <div class="project-links">
-                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/01-android-adb-telemetry" target="_blank">View Code ↗</a>
+                    <div class="project-content">
+                        <div>
+                            <div class="project-meta">
+                                <span class="proj-badge">Project 01</span>
+                                <span class="proj-badge live-web">Live Web UI (8080)</span>
+                            </div>
+                            <h4>Android Device Fleet Telemetry Daemon</h4>
+                            <p>Non-invasive ADB telemetry collection for Android POS & kiosk fleets. Monitors SoC thermal throttling, RAM leaks, and top PIDs with automated alert dispatch.</p>
+                            <div class="project-tags">
+                                <span class="tag">Android ADB</span>
+                                <span class="tag">Python 3.12</span>
+                                <span class="tag">Live Web UI</span>
+                            </div>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/01-android-adb-telemetry" target="_blank">View Code ↗</a>
+                            <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">0-Root Required</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 02 -->
-                <div class="project-card">
-                    <div class="project-meta">
-                        <span class="proj-badge">Project 02</span>
-                        <span class="proj-badge">Kernel & DTS</span>
+                <!-- 02: Linux Bringup -->
+                <div class="project-card spotlight-card featured-card reveal" data-category="kernel">
+                    <div class="project-thumb">
+                        <img src="assets/portfolio/01_arm64_linux_bringup.jpg" alt="ARM64 Linux Board Bring-Up">
                     </div>
-                    <h4>ARM64 Linux Board Bring-Up & I2C Driver</h4>
-                    <p>Complete BCM2711 device tree overlay, production C kernel driver with threaded interrupts, Yocto Kirkstone meta-layer, and real-world hardware triage case study.</p>
-                    <div class="project-tags">
-                        <span class="tag">Linux 6.6 LTS</span>
-                        <span class="tag">C99 Driver</span>
-                        <span class="tag">Yocto BitBake</span>
-                    </div>
-                    <div class="project-links">
-                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/02-embedded-linux-bringup" target="_blank">View Code ↗</a>
-                    </div>
-                </div>
-
-                <!-- 03 -->
-                <div class="project-card">
-                    <div class="project-meta">
-                        <span class="proj-badge">Project 03</span>
-                        <span class="proj-badge">DevOps CI/CD</span>
-                    </div>
-                    <h4>Firmware CI/CD & QEMU Smoke Automation</h4>
-                    <p>Dockerized toolchain cross-compiling ARM Cortex-M4 C99 firmware, running Unity unit tests, booting virtualized QEMU smoke tests, and generating SHA256 manifests.</p>
-                    <div class="project-tags">
-                        <span class="tag">Docker</span>
-                        <span class="tag">QEMU ARM</span>
-                        <span class="tag">Unity C</span>
-                    </div>
-                    <div class="project-links">
-                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/03-embedded-firmware-cicd" target="_blank">View Code ↗</a>
+                    <div class="project-content">
+                        <div>
+                            <div class="project-meta">
+                                <span class="proj-badge">Project 02</span>
+                                <span class="proj-badge" style="color:var(--accent-cyan); border-color:var(--accent-cyan);">Kernel & DTS</span>
+                            </div>
+                            <h4>ARM64 Linux Board Bring-Up & I2C Driver</h4>
+                            <p>Complete BCM2711 device tree overlay, production C kernel driver with threaded interrupts, Yocto Kirkstone meta-layer, and real-world hardware triage case study.</p>
+                            <div class="project-tags">
+                                <span class="tag">Linux 6.6 LTS</span>
+                                <span class="tag">C99 Driver</span>
+                                <span class="tag">Yocto BitBake</span>
+                            </div>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/02-embedded-linux-bringup" target="_blank">View Code ↗</a>
+                            <span style="font-size:0.75rem; color:var(--accent-cyan); font-family:var(--font-mono);">sysfs /hwmon0</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 04 -->
-                <div class="project-card">
-                    <div class="project-meta">
-                        <span class="proj-badge">Project 04</span>
-                        <span class="proj-badge">AI Diagnostic</span>
+                <!-- 03: Firmware CICD -->
+                <div class="project-card spotlight-card reveal" data-category="firmware">
+                    <div class="project-thumb">
+                        <img src="assets/portfolio/02_firmware_cicd_qemu.jpg" alt="Microcontroller Firmware CI/CD">
                     </div>
-                    <h4>AI Root-Cause Diagnostic Agent</h4>
-                    <p>Semantic vector RAG engine isolating kernel panics, I2C lockups, and Android ANRs in &lt;50ms with 100% top-1 diagnostic accuracy across 12 canonical failure benchmarks.</p>
-                    <div class="project-tags">
-                        <span class="tag">RAG Vector Engine</span>
-                        <span class="tag">TF-IDF</span>
-                        <span class="tag">Sub-Millisecond</span>
-                    </div>
-                    <div class="project-links">
-                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/04-ai-rootcause-agent" target="_blank">View Code ↗</a>
-                    </div>
-                </div>
-
-                <!-- 05 -->
-                <div class="project-card">
-                    <div class="project-meta">
-                        <span class="proj-badge">Project 05</span>
-                        <span class="proj-badge">Voice AI Engine</span>
-                    </div>
-                    <h4>Sub-500ms Voice Agent Workflow Engine</h4>
-                    <p>Sub-second voice support assistant with real-time hardware telemetry queries, enterprise warranty verification, and calendar RMA repair booking.</p>
-                    <div class="project-tags">
-                        <span class="tag">Streaming Voice</span>
-                        <span class="tag">P50 423ms</span>
-                        <span class="tag">Hardware Tools</span>
-                    </div>
-                    <div class="project-links">
-                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/05-voice-agent-workflow" target="_blank">View Code ↗</a>
+                    <div class="project-content">
+                        <div>
+                            <div class="project-meta">
+                                <span class="proj-badge">Project 03</span>
+                                <span class="proj-badge">DevOps CI/CD</span>
+                            </div>
+                            <h4>Firmware CI/CD & QEMU Smoke Automation</h4>
+                            <p>Dockerized toolchain cross-compiling ARM Cortex-M4 C99 firmware, running Unity unit tests, booting virtualized QEMU smoke tests, and generating SHA256 manifests.</p>
+                            <div class="project-tags">
+                                <span class="tag">Docker</span>
+                                <span class="tag">QEMU ARM</span>
+                                <span class="tag">Unity C99</span>
+                            </div>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/03-embedded-firmware-cicd" target="_blank">View Code ↗</a>
+                            <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">93% Faster</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 06 -->
-                <div class="project-card">
-                    <div class="project-meta">
-                        <span class="proj-badge">Project 06</span>
-                        <span class="proj-badge live-web">Live Web UI (8082)</span>
-                    </div>
-                    <h4>IoT Sensor-to-Cloud (STM32 to AWS)</h4>
-                    <p>Multi-node environmental and vibration telemetry pipeline with mTLS encryption, Terraform AWS IoT Core architecture, and real-time browser dashboard.</p>
-                    <div class="project-tags">
-                        <span class="tag">AWS IoT Core</span>
-                        <span class="tag">Terraform</span>
-                        <span class="tag">STM32 / ESP32</span>
-                    </div>
-                    <div class="project-links">
-                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/06-iot-sensor-to-cloud" target="_blank">View Code ↗</a>
-                    </div>
-                </div>
-
-                <!-- 08 -->
-                <div class="project-card">
-                    <div class="project-meta">
-                        <span class="proj-badge">Project 08</span>
-                        <span class="proj-badge live-web">Live Web UI (8084)</span>
-                    </div>
-                    <h4>Matter 1.2 Smart Device Edge Gateway</h4>
-                    <p>Local edge bridge mapping proprietary smart devices into CSA Matter clusters with dynamic endpoint commissioning and interactive web control console.</p>
-                    <div class="project-tags">
-                        <span class="tag">Matter 1.2</span>
-                        <span class="tag">Sub-10ms LAN</span>
-                        <span class="tag">Smart Devices</span>
-                    </div>
-                    <div class="project-links">
-                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/08-smart-device-matter-gateway" target="_blank">View Code ↗</a>
+                <!-- 04: AI Root Cause -->
+                <div class="project-card spotlight-card reveal" data-category="ai">
+                    <div class="project-content" style="padding-top:28px;">
+                        <div>
+                            <div class="project-meta">
+                                <span class="proj-badge">Project 04</span>
+                                <span class="proj-badge" style="color:var(--accent-purple);">AI Diagnostic</span>
+                            </div>
+                            <h4>AI Root-Cause Diagnostic Agent</h4>
+                            <p>Semantic vector RAG engine isolating kernel panics, I2C lockups, and Android ANRs in &lt;50ms with 100% top-1 diagnostic accuracy across 12 canonical failure benchmarks.</p>
+                            <div class="project-tags">
+                                <span class="tag">RAG Vector Engine</span>
+                                <span class="tag">TF-IDF</span>
+                                <span class="tag">Sub-Millisecond</span>
+                            </div>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/04-ai-rootcause-agent" target="_blank">View Code ↗</a>
+                            <span style="font-size:0.75rem; color:var(--accent-purple); font-family:var(--font-mono);">0.17ms Ingest</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 09 -->
-                <div class="project-card">
-                    <div class="project-meta">
-                        <span class="proj-badge">Project 09</span>
-                        <span class="proj-badge live-web">Live Web UI (8086)</span>
+                <!-- 05: Voice Agent -->
+                <div class="project-card spotlight-card reveal" data-category="ai">
+                    <div class="project-content" style="padding-top:28px;">
+                        <div>
+                            <div class="project-meta">
+                                <span class="proj-badge">Project 05</span>
+                                <span class="proj-badge" style="color:var(--accent-cyan);">Voice AI Engine</span>
+                            </div>
+                            <h4>Sub-500ms Voice Agent Workflow Engine</h4>
+                            <p>Sub-second voice support assistant with real-time hardware telemetry queries, enterprise warranty verification, and calendar RMA repair booking.</p>
+                            <div class="project-tags">
+                                <span class="tag">Streaming Voice</span>
+                                <span class="tag">P50: 423.6ms</span>
+                                <span class="tag">Hardware Tools</span>
+                            </div>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/05-voice-agent-workflow" target="_blank">View Code ↗</a>
+                            <span style="font-size:0.75rem; color:var(--accent-green); font-family:var(--font-mono);">&lt;500ms SLA</span>
+                        </div>
                     </div>
-                    <h4>Smart Edge AI Vision & Thermal Appliance</h4>
-                    <p>35+ FPS on-device INT8 computer vision and AMG8833 thermal infrared hotspot detection. Emits zero raw video to ensure strict GDPR compliance.</p>
-                    <div class="project-tags">
-                        <span class="tag">INT8 NPU</span>
-                        <span class="tag">Thermal Grid</span>
-                        <span class="tag">GDPR Compliant</span>
+                </div>
+
+                <!-- 06: IoT Cloud -->
+                <div class="project-card spotlight-card reveal" data-category="iot">
+                    <div class="project-content" style="padding-top:28px;">
+                        <div>
+                            <div class="project-meta">
+                                <span class="proj-badge">Project 06</span>
+                                <span class="proj-badge live-web">Live Web UI (8082)</span>
+                            </div>
+                            <h4>IoT Sensor-to-Cloud (STM32 to AWS)</h4>
+                            <p>Multi-node environmental and vibration telemetry pipeline with mTLS encryption, Terraform AWS IoT Core architecture, and real-time browser dashboard.</p>
+                            <div class="project-tags">
+                                <span class="tag">AWS IoT Core</span>
+                                <span class="tag">Terraform IaC</span>
+                                <span class="tag">STM32 / ESP32</span>
+                            </div>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/06-iot-sensor-to-cloud" target="_blank">View Code ↗</a>
+                            <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">mTLS X.509</span>
+                        </div>
                     </div>
-                    <div class="project-links">
-                        <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/09-smart-edge-ai-camera" target="_blank">View Code ↗</a>
+                </div>
+
+                <!-- 07: Developer Automation -->
+                <div class="project-card spotlight-card reveal" data-category="kernel">
+                    <div class="project-content" style="padding-top:28px;">
+                        <div>
+                            <div class="project-meta">
+                                <span class="proj-badge">Project 07</span>
+                                <span class="proj-badge">CLI Toolkit</span>
+                            </div>
+                            <h4>Developer Automation Toolkit (kw-tools)</h4>
+                            <p>Unified CLI suite providing environment auditing, cross-compilation toolchain sanity checks, and automated crash log regex pattern matching.</p>
+                            <div class="project-tags">
+                                <span class="tag">Python Click</span>
+                                <span class="tag">Env Doctor</span>
+                                <span class="tag">Log Scanner</span>
+                            </div>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/07-developer-automation-toolkit" target="_blank">View Code ↗</a>
+                            <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">kw-tools</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 08: Matter Gateway -->
+                <div class="project-card spotlight-card reveal" data-category="iot">
+                    <div class="project-content" style="padding-top:28px;">
+                        <div>
+                            <div class="project-meta">
+                                <span class="proj-badge">Project 08</span>
+                                <span class="proj-badge live-web">Live Web UI (8084)</span>
+                            </div>
+                            <h4>Matter 1.2 Smart Device Edge Gateway</h4>
+                            <p>Local edge bridge mapping proprietary smart devices into CSA Matter clusters with dynamic endpoint commissioning and interactive web control console.</p>
+                            <div class="project-tags">
+                                <span class="tag">Matter 1.2</span>
+                                <span class="tag">Sub-10ms LAN</span>
+                                <span class="tag">Smart Devices</span>
+                            </div>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/08-smart-device-matter-gateway" target="_blank">View Code ↗</a>
+                            <span style="font-size:0.75rem; color:var(--accent-cyan); font-family:var(--font-mono);">CSA Clusters</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 09: Edge AI Thermal Vision -->
+                <div class="project-card spotlight-card featured-card reveal" data-category="ai">
+                    <div class="project-thumb">
+                        <img src="assets/edge_vision_thermal.jpg" alt="Smart Edge AI Thermal Vision System">
+                    </div>
+                    <div class="project-content">
+                        <div>
+                            <div class="project-meta">
+                                <span class="proj-badge">Project 09</span>
+                                <span class="proj-badge live-web">Live Web UI (8086)</span>
+                            </div>
+                            <h4>Smart Edge AI Vision & Thermal Appliance</h4>
+                            <p>35+ FPS on-device INT8 computer vision and AMG8833 thermal infrared hotspot detection. Emits zero raw video to ensure strict GDPR compliance.</p>
+                            <div class="project-tags">
+                                <span class="tag">INT8 NPU</span>
+                                <span class="tag">Thermal Grid</span>
+                                <span class="tag">GDPR Compliant</span>
+                            </div>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/09-smart-edge-ai-camera" target="_blank">View Code ↗</a>
+                            <span style="font-size:0.75rem; color:var(--accent-green); font-family:var(--font-mono);">36.4 FPS</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Scope & Sprint Cost Calculator -->
+    <section class="calculator-section" id="calculator">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-tag">// Real-Time Estimator</div>
+                <h2 class="section-title">Interactive Project Scope & Budget Calculator</h2>
+                <p class="section-subtitle">Select your target silicon architecture and deliverables to configure your sprint scope with instant transparent pricing.</p>
+            </div>
+
+            <div class="calculator-card reveal">
+                <div class="calc-grid">
+                    <div>
+                        <!-- Silicon Architecture Selection -->
+                        <div class="calc-options-group">
+                            <label class="calc-options-label">1. Select Target Silicon Architecture</label>
+                            <div class="calc-pill-selector" id="siliconPills">
+                                <div class="calc-pill active" data-silicon="arm64" onclick="setSilicon('arm64', this)">ARM64 Linux (i.MX8 / RK3588)</div>
+                                <div class="calc-pill" data-silicon="cortexm" onclick="setSilicon('cortexm', this)">ARM Cortex-M (STM32 / NRF52)</div>
+                                <div class="calc-pill" data-silicon="bcm" onclick="setSilicon('bcm', this)">BCM2711 / Raspberry Pi CM4</div>
+                                <div class="calc-pill" data-silicon="android" onclick="setSilicon('android', this)">Android POS / Kiosk Fleet</div>
+                            </div>
+                        </div>
+
+                        <!-- Core Deliverable Package -->
+                        <div class="calc-options-group">
+                            <label class="calc-options-label">2. Select Primary Engagement Model</label>
+                            <div class="calc-pill-selector" id="packagePills">
+                                <div class="calc-pill active" data-pkg="sprint" onclick="setPackage('sprint', 3500, '2 Weeks (10 Business Days)', this)">2-Week Bring-Up Sprint</div>
+                                <div class="calc-pill" data-pkg="turnkey" onclick="setPackage('turnkey', 9500, '4 to 6 Weeks Turnkey', this)">Turnkey System Delivery</div>
+                                <div class="calc-pill" data-pkg="retainer" onclick="setPackage('retainer', 2500, 'Monthly Continuous Retainer', this)">Dedicated Fleet Retainer</div>
+                            </div>
+                        </div>
+
+                        <!-- Add-On Modules Checkboxes -->
+                        <div class="calc-options-group">
+                            <label class="calc-options-label">3. Select Technical Add-On Modules</label>
+                            <div class="calc-checkboxes">
+                                <label class="calc-checkbox-label">
+                                    <input type="checkbox" id="addonCicd" onchange="updateCalculator()" checked>
+                                    <span>QEMU Virtual CI/CD (+ $1,000)</span>
+                                </label>
+                                <label class="calc-checkbox-label">
+                                    <input type="checkbox" id="addonEdgeAi" onchange="updateCalculator()">
+                                    <span>On-Device INT8 AI (+ $2,500)</span>
+                                </label>
+                                <label class="calc-checkbox-label">
+                                    <input type="checkbox" id="addonVoice" onchange="updateCalculator()">
+                                    <span>Sub-500ms Voice Agent (+ $2,000)</span>
+                                </label>
+                                <label class="calc-checkbox-label">
+                                    <input type="checkbox" id="addonAws" onchange="updateCalculator()" checked>
+                                    <span>AWS IoT Core & Web HUD (+ $1,500)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Calculation Summary Box -->
+                    <div class="calc-summary-box">
+                        <div class="calc-summary-title">// Estimated Investment</div>
+                        <div class="calc-summary-price" id="calcPriceDisplay">$6,000</div>
+                        <div class="calc-summary-timeline" id="calcTimelineDisplay">⏱ Estimated Turnaround: 2 Weeks</div>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:24px; line-height:1.6;">
+                            Includes full IP transfer, unit test harness, cryptographic SHA256 build manifests, and direct senior engineer communication.
+                        </p>
+                        <button class="btn btn-primary" style="width:100%;" onclick="applyScopeToForm()">
+                            Apply Scope to Inquiry ➔
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1141,34 +2158,34 @@
     <!-- SDLC Framework -->
     <section class="sdlc" id="sdlc">
         <div class="container">
-            <div class="section-header">
+            <div class="section-header reveal">
                 <div class="section-tag">// Engineering Discipline</div>
                 <h2 class="section-title">The 5-Stage SDLC Delivery Framework</h2>
                 <p class="section-subtitle">How we take your hardware from unboxing to automated production verification in 2 to 4 weeks.</p>
             </div>
 
             <div class="timeline-grid">
-                <div class="timeline-step">
+                <div class="timeline-step reveal">
                     <div class="step-number">01</div>
                     <h4>Architecture & HW Audit</h4>
                     <p>Pin multiplexing review, power sequencing analysis, and peripheral bus mapping before code execution.</p>
                 </div>
-                <div class="timeline-step">
+                <div class="timeline-step reveal">
                     <div class="step-number">02</div>
                     <h4>Virtual Bring-Up</h4>
                     <p>DTS validation, synthetic sensor emulation, and kernel symbol verification to catch driver flaws early.</p>
                 </div>
-                <div class="timeline-step">
+                <div class="timeline-step reveal">
                     <div class="step-number">03</div>
                     <h4>Physical Bench Test</h4>
                     <p>Digital oscilloscope probe of I2C/SPI lines, interrupt latency verification, and thermal throttling audits.</p>
                 </div>
-                <div class="timeline-step">
+                <div class="timeline-step reveal">
                     <div class="step-number">04</div>
                     <h4>CI/CD & QEMU Gating</h4>
                     <p>Automated pipeline containerization preventing regressions from ever reaching physical dev boards.</p>
                 </div>
-                <div class="timeline-step">
+                <div class="timeline-step reveal">
                     <div class="step-number">05</div>
                     <h4>Handoff & Artifacts</h4>
                     <p>Cryptographic build manifests, clean documentation, and full IP transfer to your engineering team.</p>
@@ -1180,54 +2197,60 @@
     <!-- Pricing / Engagement Models -->
     <section class="pricing" id="pricing">
         <div class="container">
-            <div class="section-header">
+            <div class="section-header reveal">
                 <div class="section-tag">// Transparent Pricing</div>
                 <h2 class="section-title">Client Engagement Models</h2>
                 <p class="section-subtitle">Choose the structure that matches your hardware timeline and engineering capacity.</p>
             </div>
 
             <div class="pricing-grid">
-                <div class="pricing-card">
-                    <h3>2-Week Fast-Track Sprint</h3>
-                    <p style="color:var(--text-secondary); font-size:0.9rem;">Ideal for rapid prototype bring-up or de-risking a critical peripheral driver.</p>
-                    <div class="price">$2,500 – $5,000 <span>/ sprint</span></div>
-                    <ul>
-                        <li>Single SoC / Target Board focus</li>
-                        <li>DTS mapping & custom C driver</li>
-                        <li>Hardware bench stress testing</li>
-                        <li>Daily async Slack/video standups</li>
-                        <li>Deliverable within 10 business days</li>
-                    </ul>
-                    <a href="#contact" class="btn btn-secondary">Select 2-Week Sprint</a>
+                <div class="pricing-card spotlight-card reveal">
+                    <div>
+                        <h3>2-Week Fast-Track Sprint</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem;">Ideal for rapid prototype bring-up or de-risking a critical peripheral driver.</p>
+                        <div class="price">$2,500 – $5,000 <span>/ sprint</span></div>
+                        <ul>
+                            <li>Single SoC / Target Board focus</li>
+                            <li>DTS mapping & custom C driver</li>
+                            <li>Hardware bench stress testing</li>
+                            <li>Daily async Slack/video standups</li>
+                            <li>Deliverable within 10 business days</li>
+                        </ul>
+                    </div>
+                    <a href="#contact" class="btn btn-secondary" onclick="preselectTier('2-Week Fast-Track Sprint')">Select 2-Week Sprint</a>
                 </div>
 
-                <div class="pricing-card featured">
+                <div class="pricing-card spotlight-card featured reveal">
                     <div class="featured-tag">Most Popular</div>
-                    <h3>Turnkey System Delivery</h3>
-                    <p style="color:var(--text-secondary); font-size:0.9rem;">Complete silicon-to-cloud or on-device AI system implementation.</p>
-                    <div class="price">$6,000 – $18,000 <span>/ project</span></div>
-                    <ul>
-                        <li>End-to-end firmware + Cloud/Edge stack</li>
-                        <li>Dockerized CI/CD & QEMU test automation</li>
-                        <li>Live web dashboard & REST API integration</li>
-                        <li>Full Yocto / FreeRTOS rootfs delivery</li>
-                        <li>30-day post-launch warranty support</li>
-                    </ul>
-                    <a href="#contact" class="btn btn-primary">Select Turnkey Project</a>
+                    <div>
+                        <h3>Turnkey System Delivery</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem;">Complete silicon-to-cloud or on-device AI system implementation.</p>
+                        <div class="price">$6,000 – $18,000 <span>/ project</span></div>
+                        <ul>
+                            <li>End-to-end firmware + Cloud/Edge stack</li>
+                            <li>Dockerized CI/CD & QEMU test automation</li>
+                            <li>Live web dashboard & REST API integration</li>
+                            <li>Full Yocto / FreeRTOS rootfs delivery</li>
+                            <li>30-day post-launch warranty support</li>
+                        </ul>
+                    </div>
+                    <a href="#contact" class="btn btn-primary" onclick="preselectTier('Turnkey System Delivery')">Select Turnkey Project</a>
                 </div>
 
-                <div class="pricing-card">
-                    <h3>Dedicated Fleet SLA Retainer</h3>
-                    <p style="color:var(--text-secondary); font-size:0.9rem;">Continuous firmware maintenance and automated device fleet diagnostics.</p>
-                    <div class="price">$1,500 – $4,000 <span>/ month</span></div>
-                    <ul>
-                        <li>24/7 crash log triage & automated AI diagnosis</li>
-                        <li>Monthly security kernel patches</li>
-                        <li>Thermal and memory leak profiling</li>
-                        <li>Guaranteed 4-hour SLA response</li>
-                        <li>Cancel or pause anytime</li>
-                    </ul>
-                    <a href="#contact" class="btn btn-secondary">Select Fleet Retainer</a>
+                <div class="pricing-card spotlight-card reveal">
+                    <div>
+                        <h3>Dedicated Fleet SLA Retainer</h3>
+                        <p style="color:var(--text-secondary); font-size:0.9rem;">Continuous firmware maintenance and automated device fleet diagnostics.</p>
+                        <div class="price">$1,500 – $4,000 <span>/ month</span></div>
+                        <ul>
+                            <li>24/7 crash log triage & automated AI diagnosis</li>
+                            <li>Monthly security kernel patches</li>
+                            <li>Thermal and memory leak profiling</li>
+                            <li>Guaranteed 4-hour SLA response</li>
+                            <li>Cancel or pause anytime</li>
+                        </ul>
+                    </div>
+                    <a href="#contact" class="btn btn-secondary" onclick="preselectTier('Dedicated Fleet SLA Retainer')">Select Fleet Retainer</a>
                 </div>
             </div>
         </div>
@@ -1236,13 +2259,13 @@
     <!-- Interactive Scope Inquiry / Contact Section -->
     <section class="estimator" id="contact">
         <div class="container">
-            <div class="section-header">
+            <div class="section-header reveal">
                 <div class="section-tag">// Get In Touch</div>
                 <h2 class="section-title">Schedule a Technical Discovery Call</h2>
                 <p class="section-subtitle">Tell us about your hardware target and timeline. We respond with a tailored technical scope within 24 hours.</p>
             </div>
 
-            <div class="estimator-box">
+            <div class="estimator-box reveal">
                 <form id="contactForm" onsubmit="handleFormSubmit(event)">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div class="form-group">
@@ -1283,11 +2306,12 @@
                         <textarea id="projectDetails" class="form-control" rows="4" placeholder="Mention your target microcontroller or SoC (e.g. STM32, NXP i.MX8, BCM2711), sensors (I2C/SPI), and key deliverables..."></textarea>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1rem;">
-                        Submit Project Inquiry ➔
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.05rem;">
+                        <span>Submit Technical Inquiry</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </button>
                 </form>
-                <div id="formSuccess" style="display: none; margin-top: 20px; padding: 16px; border-radius: 8px; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-green); color: #6ee7b7; text-align: center;">
+                <div id="formSuccess" style="display: none; margin-top: 20px; padding: 18px; border-radius: 10px; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-green); color: #6ee7b7; text-align: center; font-size:0.95rem;">
                     Thank you! Your project inquiry has been prepared. Opening your mail client to dispatch to <strong>engineering@kernelwiselabs.com</strong>...
                 </div>
             </div>
@@ -1299,21 +2323,21 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">
-                    <div class="logo" style="margin-bottom: 16px;">
+                    <div class="logo" style="margin-bottom: 18px;">
                         <div class="logo-badge">KW</div>
                         <span>Kernelwise Labs</span>
                     </div>
                     <p style="line-height: 1.7; margin-bottom: 20px;">
-                        Specialized embedded engineering, board bring-up, and Edge AI agency delivering production-grade systems for hardware startups and OEMs worldwide.
+                        Specialized embedded engineering, board bring-up, and on-device Edge AI agency delivering production-grade systems for hardware startups and OEMs worldwide.
                     </p>
-                    <p style="font-size: 0.85rem; color: var(--accent-cyan);">
-                        Principal Engineer: <strong>Aravind Reddy</strong>
+                    <p style="font-size: 0.88rem; color: var(--accent-cyan);">
+                        Principal Systems Engineer: <strong>Aravind Reddy</strong>
                     </p>
                 </div>
                 <div class="footer-col">
-                    <h5>Official Repositories</h5>
+                    <h5>Verified Subsystems</h5>
                     <ul>
-                        <li><a href="https://github.com/DAravindReddy/Kernelwise-protofolio" target="_blank">Monorepo Portfolio</a></li>
+                        <li><a href="https://github.com/DAravindReddy/Kernelwise-protofolio" target="_blank">Portfolio Monorepo</a></li>
                         <li><a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/01-android-adb-telemetry" target="_blank">Android ADB Telemetry</a></li>
                         <li><a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/02-embedded-linux-bringup" target="_blank">Embedded Linux Bring-Up</a></li>
                         <li><a href="https://github.com/DAravindReddy/Kernelwise-protofolio/tree/main/03-embedded-firmware-cicd" target="_blank">Firmware CI/CD Pipeline</a></li>
@@ -1321,25 +2345,624 @@
                     </ul>
                 </div>
                 <div class="footer-col">
-                    <h5>Contact & Inquiries</h5>
+                    <h5>Official Contacts</h5>
                     <ul>
                         <li><a href="mailto:engineering@kernelwiselabs.com">engineering@kernelwiselabs.com</a></li>
                         <li><a href="mailto:hello@kernelwiselabs.com">hello@kernelwiselabs.com</a></li>
                         <li><a href="https://github.com/DAravindReddy" target="_blank">github.com/DAravindReddy</a></li>
-                        <li style="margin-top: 8px; color: var(--text-muted);">Bengaluru, India · Global Remote</li>
+                        <li><a href="https://www.freelancer.in/u/Aravindr63" target="_blank">freelancer.in/u/Aravindr63</a></li>
+                        <li style="margin-top: 8px; color: var(--text-muted); font-size:0.85rem;">Bengaluru, India · Global Remote</li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
                 <div>© 2026 Kernelwise Labs. All rights reserved.</div>
-                <div>Engineered for extreme reliability and hardware precision.</div>
+                <div>Engineered for hardware precision, low latency, and zero-defect reliability.</div>
             </div>
         </div>
     </footer>
 
+    <!-- Floating Back-to-Top Button -->
+    <div class="back-to-top" id="backToTop" onclick="scrollToTop()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg>
+    </div>
+
+    <!-- JavaScript Application Engine -->
     <script>
+        /* ============================================================
+           1. Web Audio API Cybernetic Sound FX Engine
+           ============================================================ */
+        let audioCtx = null;
+        let soundEnabled = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+        }
+
+        function playTone(freq, type = 'sine', duration = 0.08, vol = 0.04) {
+            if (!soundEnabled || !audioCtx) return;
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                console.warn(e);
+            }
+        }
+
+        const soundToggle = document.getElementById('soundToggle');
+        const soundIcon = document.getElementById('soundIcon');
+        const soundText = document.getElementById('soundText');
+
+        soundToggle.addEventListener('click', () => {
+            initAudio();
+            soundEnabled = !soundEnabled;
+            if (soundEnabled) {
+                soundToggle.classList.add('sound-on');
+                soundIcon.textContent = '🔊';
+                soundText.textContent = 'SFX: ON';
+                playTone(880, 'triangle', 0.12, 0.05);
+                setTimeout(() => playTone(1320, 'sine', 0.15, 0.04), 100);
+            } else {
+                soundToggle.classList.remove('sound-on');
+                soundIcon.textContent = '🔇';
+                soundText.textContent = 'SFX: OFF';
+            }
+        });
+
+        /* ============================================================
+           2. Ambient Interactive Neural Circuit Canvas
+           ============================================================ */
+        const canvas = document.getElementById('circuitCanvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        const mouse = { x: width / 2, y: height / 2, active: false };
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initNodes();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            mouse.active = true;
+
+            // Cursor glow follower
+            const glow = document.getElementById('cursorGlow');
+            if (glow) {
+                glow.style.left = `${e.clientX}px`;
+                glow.style.top = `${e.clientY}px`;
+            }
+        });
+
+        const NODE_COUNT = Math.min(Math.floor((width * height) / 22000), 65);
+        let nodes = [];
+
+        class CircuitNode {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.45;
+                this.vy = (Math.random() - 0.5) * 0.45;
+                this.radius = Math.random() * 2 + 1.2;
+                this.pulse = Math.random() * Math.PI;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+
+                // Mouse interaction
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 140) {
+                    const force = (140 - dist) / 140;
+                    this.x -= (dx / dist) * force * 1.5;
+                    this.y -= (dy / dist) * force * 1.5;
+                }
+                this.pulse += 0.03;
+            }
+            draw() {
+                ctx.beginPath();
+                const glowSize = this.radius + Math.sin(this.pulse) * 0.8;
+                ctx.arc(this.x, this.y, Math.max(glowSize, 1), 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 242, 254, 0.7)';
+                ctx.fill();
+            }
+        }
+
+        function initNodes() {
+            nodes = [];
+            for (let i = 0; i < NODE_COUNT; i++) {
+                nodes.push(new CircuitNode());
+            }
+        }
+        initNodes();
+
+        let packetTime = 0;
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Connect nearby nodes with circuit traces
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const dx = nodes[i].x - nodes[j].x;
+                    const dy = nodes[i].y - nodes[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const maxDist = 160;
+
+                    if (dist < maxDist) {
+                        const alpha = (1 - dist / maxDist) * 0.22;
+                        ctx.beginPath();
+                        ctx.moveTo(nodes[i].x, nodes[i].y);
+                        ctx.lineTo(nodes[j].x, nodes[j].y);
+                        ctx.strokeStyle = `rgba(0, 242, 254, ${alpha})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+
+                        // Occasional data packet pulse along line
+                        if ((i + j) % 7 === 0) {
+                            const t = ((packetTime * 0.001 + (i * 0.2)) % 1);
+                            const px = nodes[i].x + (nodes[j].x - nodes[i].x) * t;
+                            const py = nodes[i].y + (nodes[j].y - nodes[i].y) * t;
+                            ctx.beginPath();
+                            ctx.arc(px, py, 1.8, 0, Math.PI * 2);
+                            ctx.fillStyle = 'rgba(157, 78, 221, 0.8)';
+                            ctx.fill();
+                        }
+                    }
+                }
+                nodes[i].update();
+                nodes[i].draw();
+            }
+
+            packetTime += 16;
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+
+        /* ============================================================
+           3. Spotlight Mouse Hover Effect & 3D Tilt
+           ============================================================ */
+        const spotlightCards = document.querySelectorAll('.spotlight-card, .hardware-showcase-box');
+
+        spotlightCards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+
+                // Subtle 3D tilt
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -4;
+                const rotateY = ((x - centerX) / centerX) * 4;
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+            });
+
+            card.addEventListener('mouseenter', () => {
+                playTone(1100, 'sine', 0.04, 0.015);
+            });
+        });
+
+        /* ============================================================
+           4. Interactive AI Copilot Terminal Engine
+           ============================================================ */
+        const termOutput = document.getElementById('termOutput');
+        let isTyping = false;
+
+        const terminalScenarios = {
+            all: [
+                { type: 'cmd', text: 'python run_portfolio.py --all' },
+                { type: 'dim', text: 'Starting sequential verification of all 9 engineering subsystems...' },
+                { type: 'pass', tag: '01-ANDROID', text: 'Non-invasive thermal daemon (Target: sim-kiosk-arm64, SoC: 41.2°C)' },
+                { type: 'pass', tag: '02-LINUX', text: 'BCM2711 DTS binding & I2C driver probe (/sys/class/hwmon0 nominal)' },
+                { type: 'pass', tag: '03-FIRMWARE', text: 'Unity C99 tests + 16KB ARM Cortex-M4 image + QEMU smoke passed' },
+                { type: 'pass', tag: '04-AI-RAG', text: 'Semantic vector diagnostic: I2C lockup isolated in 0.17ms' },
+                { type: 'pass', tag: '05-VOICE-AI', text: 'P50 response latency: 423.6ms (Sub-500ms SLA verified)' },
+                { type: 'pass', tag: '06-IOT-AWS', text: 'Multi-node MQTT sensor stream ingested into AWS IoT Core (0 loss)' },
+                { type: 'pass', tag: '07-TOOLKIT', text: 'kw-tools environment audit & automated crash log scanner nominal' },
+                { type: 'pass', tag: '08-MATTER', text: 'CSA Matter 1.2 clusters (OnOff, LevelControl, DoorLock commissioned)' },
+                { type: 'pass', tag: '09-EDGE-AI', text: 'On-device INT8 inference @ 36.4 FPS + 74.9°C Hotspot Alert emitted' },
+                { type: 'allpass', text: '[ALL PASSED] 100% of hardware and AI contracts nominal. Ready for deployment.' }
+            ],
+            i2c: [
+                { type: 'cmd', text: 'kw-copilot diagnose --subsystem 02-embedded-linux-bringup --bus i2c-1' },
+                { type: 'dim', text: 'Auditing physical bus state & kernel dmesg ringbuffer...' },
+                { type: 'warn', tag: 'BUS_HANG', text: 'SDA held LOW by slave device at 0x48. Clock stretching timeout >35ms.' },
+                { type: 'info', tag: 'AI_RAG', text: 'Querying vector knowledgebase (12 hardware failure benchmarks)...' },
+                { type: 'pass', tag: 'MATCH_98%', text: 'Issue ID: HW-I2C-STRETCH-04 // Sensor SMBus timeout conflict.' },
+                { type: 'highlight', text: 'Recommended Fix: Inject 9 SCL recovery clock pulses in custom C driver.' },
+                { type: 'allpass', text: '[REMEDIATED] Applied recovery sequence to bcm2835_i2c. Bus unlocked in 1.4ms.' }
+            ],
+            thermal: [
+                { type: 'cmd', text: 'python 01-android-adb-telemetry/main.py --cycles 3 --alert-thresh 48.0' },
+                { type: 'dim', text: 'Attaching non-invasive ADB telemetry daemon to POS fleet device...' },
+                { type: 'info', tag: 'TELEMETRY', text: 'Battery Temp: 38.4°C | CPU0-7 Avg: 51.2°C [ALERT: Exceeds 48°C]' },
+                { type: 'warn', tag: 'LMK_RISK', text: 'PID 1842 (kiosk-display) consuming 884MB RAM. Low Memory Killer armed.' },
+                { type: 'pass', tag: 'AUTOMATION', text: 'Dispatched automated webhook alert to engineering ops channel.' },
+                { type: 'allpass', text: '[NOMINAL] Thermal Governor throttled freq to 1.2GHz. Temp stabilized at 43.1°C.' }
+            ],
+            voice: [
+                { type: 'cmd', text: 'python 05-voice-agent-workflow/main.py --benchmark --turns 5' },
+                { type: 'dim', text: 'Simulating streaming voice pipeline: Audio In ➔ Whisper ➔ LLM ➔ ElevenLabs...' },
+                { type: 'info', tag: 'TURN_01', text: 'Speech-to-Text: 112ms | LLM TTFT: 148ms | TTS Audio Out: 154ms' },
+                { type: 'pass', tag: 'LATENCY', text: 'Total Round-Trip: 414.0ms (<500ms target SLA satisfied)' },
+                { type: 'info', tag: 'TURN_02', text: 'Tool Execution: query_hardware_telemetry(soc="bcm2711") in 9.2ms' },
+                { type: 'allpass', text: '[SLA CERTIFIED] P50 Latency: 423.6ms | P99 Latency: 489.1ms across 5 turns.' }
+            ],
+            qemu: [
+                { type: 'cmd', text: 'python run_portfolio.py --project 3' },
+                { type: 'dim', text: 'Running Dockerized CMake + Ninja build for ARM Cortex-M4 target...' },
+                { type: 'pass', tag: 'COMPILER', text: 'arm-none-eabi-gcc 13.2 cross-compilation completed in 2.1s (93% faster)' },
+                { type: 'pass', tag: 'TEST_SUITE', text: 'Unity C99: 14/14 tests passed (Ring buffer, CRC32, packet parser)' },
+                { type: 'info', tag: 'QEMU_BOOT', text: 'Booting qemu-system-arm -machine lm3s6965evb -nographic -kernel firmware.elf' },
+                { type: 'allpass', text: '[SUCCESS] Virtual smoke test passed. Generated SHA-256 build manifest.' }
+            ],
+            vision: [
+                { type: 'cmd', text: 'python 09-smart-edge-ai-camera/main.py --frames 5' },
+                { type: 'dim', text: 'Streaming dual-sensor pipeline: RGB Sensor + AMG8833 Thermal Grid...' },
+                { type: 'info', tag: 'INFERENCE', text: 'INT8 Quantized MobileNetV2 running on ARM64 Cortex-A53: 36.4 FPS' },
+                { type: 'warn', tag: 'HOTSPOT', text: 'Isolated thermal coordinate (Row 4, Col 6): 74.9°C exceeding safe threshold!' },
+                { type: 'pass', tag: 'PRIVACY', text: 'Zero raw video transmitted. Emitted lightweight JSON metadata telemetry.' },
+                { type: 'allpass', text: '[DISPATCHED] MQTT alert published to iot/telemetry/hotspots in 4.8ms.' }
+            ]
+        };
+
+        function runTerminalSim(scenarioKey) {
+            if (isTyping) return;
+            const scenario = terminalScenarios[scenarioKey] || terminalScenarios.all;
+
+            // Highlight active prompt chip
+            document.querySelectorAll('.prompt-chip').forEach(chip => chip.classList.remove('active'));
+            if (event && event.target) event.target.classList.add('active');
+
+            termOutput.innerHTML = '';
+            isTyping = true;
+            playTone(800, 'triangle', 0.08, 0.03);
+
+            let stepIndex = 0;
+
+            function renderNextStep() {
+                if (stepIndex >= scenario.length) {
+                    isTyping = false;
+                    playTone(1200, 'sine', 0.15, 0.04);
+                    return;
+                }
+
+                const item = scenario[stepIndex];
+                const p = document.createElement('p');
+
+                if (item.type === 'cmd') {
+                    p.innerHTML = `<span class="term-prompt">kw-copilot:~$</span> ${item.text}`;
+                    playTone(600, 'sine', 0.04, 0.02);
+                } else if (item.type === 'dim') {
+                    p.className = 'term-dim';
+                    p.textContent = item.text;
+                } else if (item.type === 'pass') {
+                    p.innerHTML = `<span class="term-success">[PASS]</span> <span class="term-tag">${item.tag}</span> ${item.text}`;
+                    playTone(950, 'sine', 0.03, 0.02);
+                } else if (item.type === 'warn') {
+                    p.innerHTML = `<span class="term-warn">[WARN]</span> <span class="term-tag" style="background:rgba(245,158,11,0.2); color:#fde68a;">${item.tag}</span> ${item.text}`;
+                    playTone(400, 'sawtooth', 0.06, 0.02);
+                } else if (item.type === 'info') {
+                    p.innerHTML = `<span style="color:var(--accent-cyan)">[INFO]</span> <span class="term-tag">${item.tag}</span> ${item.text}`;
+                    playTone(850, 'sine', 0.03, 0.02);
+                } else if (item.type === 'highlight') {
+                    p.className = 'term-highlight';
+                    p.textContent = item.text;
+                } else if (item.type === 'allpass') {
+                    p.className = 'term-success';
+                    p.style.marginTop = '10px';
+                    p.innerHTML = `${item.text}<span class="cursor-blink"></span>`;
+                }
+
+                termOutput.appendChild(p);
+                termOutput.scrollTop = termOutput.scrollHeight;
+                stepIndex++;
+                setTimeout(renderNextStep, item.type === 'cmd' ? 220 : 140);
+            }
+
+            renderNextStep();
+        }
+
+        /* ============================================================
+           5. Interactive Architecture Visualizer
+           ============================================================ */
+        const archData = [
+            {
+                tag: 'LAYER 01 // PHYSICAL SILICON & PROTOCOLS',
+                title: 'Custom Microcontrollers & Microprocessors',
+                desc: 'Direct peripheral bus interfacing across I2C, SPI, UART, and CAN-FD. We review pin multiplexing, clock stretching, power rails, and timing jitter on the physical bench.',
+                specs: [
+                    { k: 'Supported Silicon:', v: 'STM32, NXP i.MX8, BCM2711, ESP32, TI Sitara' },
+                    { k: 'Hardware Buses:', v: 'I2C, SPI, UART, GPIO, CAN-FD, MIPI-CSI' },
+                    { k: 'Signal Verification:', v: '100MHz Logic Analyzer + Rigol Digital Scope' },
+                    { k: 'Portfolio Proof:', v: '02-embedded-linux-bringup' }
+                ]
+            },
+            {
+                tag: 'LAYER 02 // LOW-LEVEL KERNEL & RTOS',
+                title: 'Device Tree, Linux Drivers & FreeRTOS',
+                desc: 'Clean Linux Board Support Packages (BSP), Device Tree Sources (.dts), threaded IRQ kernel drivers, sysfs attribute contracts, and custom Yocto Kirkstone BitBake layers.',
+                specs: [
+                    { k: 'Kernel Version:', v: 'Linux 6.6 LTS & FreeRTOS v10.x' },
+                    { k: 'Driver Model:', v: 'hwmon, misc_device, threaded_irq' },
+                    { k: 'Build Framework:', v: 'Yocto BitBake, Buildroot, CMake' },
+                    { k: 'Portfolio Proof:', v: '02-embedded-linux-bringup & 03-cicd' }
+                ]
+            },
+            {
+                tag: 'LAYER 03 // ON-DEVICE EDGE AI & GATEWAY',
+                title: 'Sub-Second INT8 Inference & Matter 1.2',
+                desc: 'Deploying quantized neural networks to NPU / Cortex-A silicon at 35+ FPS without sending raw user video off-device. Matter 1.2 local clusters bridge legacy hardware to Apple Home and Home Assistant.',
+                specs: [
+                    { k: 'Model Format:', v: 'TensorFlow Lite INT8, ONNX Runtime' },
+                    { k: 'Frame Rate:', v: '36.4 FPS on ARM64 Cortex-A53' },
+                    { k: 'Smart Gateway:', v: 'CSA Matter 1.2 Data Model' },
+                    { k: 'Portfolio Proof:', v: '08-matter-gateway & 09-edge-ai-camera' }
+                ]
+            },
+            {
+                tag: 'LAYER 04 // CLOUD TELEMETRY & IOT PIPELINE',
+                title: 'AWS IoT Core & Multi-Node Telemetry',
+                desc: 'Zero-touch mTLS X.509 authenticated MQTT telemetry ingestion into AWS IoT Core, DynamoDB time-series storage, and automated infrastructure as code provisioned with Terraform.',
+                specs: [
+                    { k: 'Cloud Broker:', v: 'AWS IoT Core (MQTT over TLS)' },
+                    { k: 'Authentication:', v: 'Hardware-unique X.509 mTLS certificates' },
+                    { k: 'Infrastructure:', v: 'Terraform IaC with DynamoDB & Lambda' },
+                    { k: 'Portfolio Proof:', v: '06-iot-sensor-to-cloud' }
+                ]
+            },
+            {
+                tag: 'LAYER 05 // LOW-LATENCY HUMAN INTERFACES',
+                title: 'Sub-500ms Voice Agent & Real-Time HUDs',
+                desc: 'Streaming voice assistants (Whisper STT ➔ LLM ➔ ElevenLabs TTS) with direct device diagnostic function calling, paired with real-time WebSocket telemetry web consoles.',
+                specs: [
+                    { k: 'Voice SLA:', v: 'P50: 423.6ms / P99: 489.1ms round-trip' },
+                    { k: 'Web Dashboards:', v: 'Real-time WebSocket & HTTP REST consoles' },
+                    { k: 'Tool Calling:', v: 'Diagnostic lookups & RMA repair scheduling' },
+                    { k: 'Portfolio Proof:', v: '01-android-adb & 05-voice-agent' }
+                ]
+            }
+        ];
+
+        function selectArchStep(index) {
+            playTone(900 + index * 100, 'sine', 0.06, 0.025);
+            const nodes = document.querySelectorAll('.arch-step-node');
+            nodes.forEach((n, i) => n.classList.toggle('active', i === index));
+
+            const data = archData[index];
+            document.getElementById('archLayerTag').textContent = data.tag;
+            document.getElementById('archLayerTitle').textContent = data.title;
+            document.getElementById('archLayerDesc').textContent = data.desc;
+
+            const specsList = document.getElementById('archSpecsList');
+            specsList.innerHTML = '';
+            data.specs.forEach(s => {
+                const row = document.createElement('div');
+                row.className = 'arch-spec-row';
+                row.innerHTML = `<span>${s.k}</span> <span>${s.v}</span>`;
+                specsList.appendChild(row);
+            });
+        }
+
+        /* ============================================================
+           6. Project Filtering System
+           ============================================================ */
+        function filterProjects(category) {
+            playTone(850, 'triangle', 0.05, 0.02);
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            if (event && event.target) event.target.classList.add('active');
+
+            const cards = document.querySelectorAll('.projects-grid .project-card');
+            cards.forEach(card => {
+                const cardCat = card.getAttribute('data-category');
+                if (category === 'all' || cardCat === category) {
+                    card.style.display = 'flex';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        /* ============================================================
+           7. Interactive Scope & Cost Calculator
+           ============================================================ */
+        let selectedSilicon = 'ARM64 Linux (i.MX8 / RK3588)';
+        let selectedPackage = '2-Week Bring-Up Sprint';
+        let basePrice = 3500;
+        let baseTimeline = '2 Weeks (10 Business Days)';
+
+        function setSilicon(silicon, el) {
+            playTone(1050, 'sine', 0.04, 0.02);
+            document.querySelectorAll('#siliconPills .calc-pill').forEach(p => p.classList.remove('active'));
+            el.classList.add('active');
+            selectedSilicon = el.textContent;
+            updateCalculator();
+        }
+
+        function setPackage(pkg, price, timeline, el) {
+            playTone(1200, 'sine', 0.04, 0.02);
+            document.querySelectorAll('#packagePills .calc-pill').forEach(p => p.classList.remove('active'));
+            el.classList.add('active');
+            selectedPackage = el.textContent;
+            basePrice = price;
+            baseTimeline = timeline;
+            updateCalculator();
+        }
+
+        function updateCalculator() {
+            let total = basePrice;
+            const addonCicd = document.getElementById('addonCicd').checked;
+            const addonEdgeAi = document.getElementById('addonEdgeAi').checked;
+            const addonVoice = document.getElementById('addonVoice').checked;
+            const addonAws = document.getElementById('addonAws').checked;
+
+            if (addonCicd) total += 1000;
+            if (addonEdgeAi) total += 2500;
+            if (addonVoice) total += 2000;
+            if (addonAws) total += 1500;
+
+            const isRetainer = selectedPackage.includes('Retainer');
+            document.getElementById('calcPriceDisplay').textContent = `$${total.toLocaleString()}${isRetainer ? ' / mo' : ''}`;
+            document.getElementById('calcTimelineDisplay').textContent = `⏱ Estimated Turnaround: ${baseTimeline}`;
+        }
+
+        function applyScopeToForm() {
+            playTone(1350, 'sine', 0.1, 0.04);
+            const domainSelect = document.getElementById('serviceType');
+            const timelineSelect = document.getElementById('timeline');
+            const detailsTextarea = document.getElementById('projectDetails');
+
+            // Pick closest domain
+            if (selectedSilicon.includes('Linux')) domainSelect.value = 'Embedded Linux Bring-Up';
+            else if (selectedSilicon.includes('Android')) domainSelect.value = 'Android Fleet Telemetry';
+            else if (selectedSilicon.includes('Cortex-M')) domainSelect.value = 'Firmware CI/CD & QEMU';
+
+            // Pick closest timeline
+            if (selectedPackage.includes('Sprint')) timelineSelect.value = 'Immediate (Within 2 Weeks)';
+            else if (selectedPackage.includes('Turnkey')) timelineSelect.value = 'Next Month (Turnkey)';
+            else if (selectedPackage.includes('Retainer')) timelineSelect.value = 'Ongoing Fleet Retainer';
+
+            const activeAddons = [];
+            if (document.getElementById('addonCicd').checked) activeAddons.push('QEMU CI/CD Test Harness');
+            if (document.getElementById('addonEdgeAi').checked) activeAddons.push('On-Device Edge AI');
+            if (document.getElementById('addonVoice').checked) activeAddons.push('Sub-500ms Voice Agent');
+            if (document.getElementById('addonAws').checked) activeAddons.push('AWS IoT Cloud Pipeline');
+
+            detailsTextarea.value = `Selected Silicon Architecture: ${selectedSilicon}\nEngagement Package: ${selectedPackage}\nModules: ${activeAddons.join(', ')}\nEstimated Scope: ${document.getElementById('calcPriceDisplay').textContent}`;
+
+            const contactSection = document.getElementById('contact');
+            contactSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function preselectTier(tierName) {
+            const domainSelect = document.getElementById('serviceType');
+            const timelineSelect = document.getElementById('timeline');
+            if (tierName.includes('2-Week')) {
+                timelineSelect.value = 'Immediate (Within 2 Weeks)';
+            } else if (tierName.includes('Turnkey')) {
+                timelineSelect.value = 'Next Month (Turnkey)';
+            } else if (tierName.includes('Retainer')) {
+                timelineSelect.value = 'Ongoing Fleet Retainer';
+            }
+        }
+
+        /* ============================================================
+           8. Animated Number Counters
+           ============================================================ */
+        const observerOptions = { threshold: 0.15 };
+        const counterObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const target = parseFloat(el.getAttribute('data-target'));
+                    const prefix = el.getAttribute('data-prefix') || '';
+                    const suffix = el.getAttribute('data-suffix') || '';
+                    const decimals = parseInt(el.getAttribute('data-decimals') || '0', 10);
+                    let current = 0;
+                    const duration = 1400;
+                    const startTime = performance.now();
+
+                    function updateNumber(now) {
+                        const elapsed = now - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        const easeOut = 1 - Math.pow(1 - progress, 3);
+                        current = easeOut * target;
+                        el.textContent = `${prefix}${current.toFixed(decimals)}${suffix}`;
+                        if (progress < 1) {
+                            requestAnimationFrame(updateNumber);
+                        } else {
+                            el.textContent = `${prefix}${target.toFixed(decimals)}${suffix}`;
+                        }
+                    }
+                    requestAnimationFrame(updateNumber);
+                    observer.unobserve(el);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.counter').forEach(c => counterObserver.observe(c));
+
+        /* ============================================================
+           9. Reveal On Scroll Animations
+           ============================================================ */
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        /* ============================================================
+           10. Scroll Progress Bar & Back to Top Button
+           ============================================================ */
+        const scrollBar = document.getElementById('scroll-progress');
+        const backToTopBtn = document.getElementById('backToTop');
+        const mainHeader = document.getElementById('mainHeader');
+
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+            if (scrollBar) scrollBar.style.width = `${scrollPercent}%`;
+
+            if (scrollTop > 400) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+
+            if (scrollTop > 50) {
+                mainHeader.classList.add('scrolled');
+            } else {
+                mainHeader.classList.remove('scrolled');
+            }
+        });
+
+        function scrollToTop() {
+            playTone(1000, 'sine', 0.08, 0.02);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* ============================================================
+           11. Contact Form Dispatch
+           ============================================================ */
         function handleFormSubmit(e) {
             e.preventDefault();
+            playTone(1400, 'sine', 0.15, 0.05);
+
             const name = document.getElementById('clientName').value;
             const email = document.getElementById('clientEmail').value;
             const domain = document.getElementById('serviceType').value;
